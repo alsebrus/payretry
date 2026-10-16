@@ -2,6 +2,7 @@
 /node_modules
 /tests
 /build
+/svn-assets
 /.wp-env.json
 /.phpunit.result.cache
 
