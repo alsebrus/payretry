@@ -46,6 +46,21 @@ gets declined, then fast-forwards 8 days and asserts the full reminder
 escalation against the database. On NixOS it drives the system Google Chrome
 (auto-detected in `playwright.config.js`, override with `CHROME_PATH`).
 
+## Premium (Freemius) — pending account
+
+The settings UI is gated behind `wpr_is_premium()` (dev/test without the SDK
+falls back to premium). To finish the integration I need, from your
+dashboard.freemius.com account (Register -> Add product, slug `wc-pay-recovery`):
+
+1. **Product id** and **public key** (`pk_...`) from the SDK Integration page.
+2. A paid plan set up (e.g. Single Site $79/yr, 5-Site, Lifetime).
+3. Send me the id + public key; I then: `composer require freemius/wordpress-sdk`,
+   paste the generated `fs_dynamic_init()` snippet after the plugin header,
+   the settings UI already sits behind `wpr_is_premium()` which will then
+   follow the actual license,
+   and test in `WP_FS__DEV_MODE` on wp-env. Free build on wordpress.org keeps
+   the default 1/3/7 schedule with no settings UI (stripped by Freemius).
+
 ## Notes
 
 - Always run wp-env commands from the project root — it locates `.wp-env.json`

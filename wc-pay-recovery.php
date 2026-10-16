@@ -30,6 +30,16 @@ function wpr_get_settings(): array
     return wp_parse_args(get_option('wpr_settings', []), wpr_default_settings());
 }
 
+// Premium gate. While the Freemius SDK is not bundled (dev/test), fall back to
+// premium so settings stay usable; the wordpress.org free build strips this.
+function wpr_is_premium(): bool
+{
+    if (!function_exists('wpr_fs')) {
+        return true;
+    }
+    return wpr_fs()->can_use_premium();
+}
+
 function wpr_sanitize_settings($input): array
 {
     $out = get_option('wpr_settings', []);
@@ -167,9 +177,12 @@ if (!wp_next_scheduled('wpr_check')) {
     wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', 'wpr_check');
 }
 
-add_action('admin_menu', function () {
-    add_submenu_page('woocommerce', __('Payment Recovery', 'wc-pay-recovery'), __('Payment Recovery', 'wc-pay-recovery'), 'manage_woocommerce', 'wpr', 'wpr_render_settings_page');
-});
-add_action('admin_init', function () {
-    register_setting('wpr', 'wpr_settings', ['sanitize_callback' => 'wpr_sanitize_settings']);
-});
+// Premium-only: the settings UI (free build keeps the default 1/3/7 schedule).
+if (wpr_is_premium()) {
+    add_action('admin_menu', function () {
+        add_submenu_page('woocommerce', __('Payment Recovery', 'wc-pay-recovery'), __('Payment Recovery', 'wc-pay-recovery'), 'manage_woocommerce', 'wpr', 'wpr_render_settings_page');
+    });
+    add_action('admin_init', function () {
+        register_setting('wpr', 'wpr_settings', ['sanitize_callback' => 'wpr_sanitize_settings']);
+    });
+}
