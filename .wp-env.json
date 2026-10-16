@@ -1,0 +1,8 @@
+{
+  "core": null,
+  "port": 9080,
+  "testsPort": 9081,
+  "plugins": [".", "https://downloads.wordpress.org/plugin/woocommerce.latest-stable.zip"],
+  "mappings": { "wp-content/mu-plugins": "./tests/mu-plugins" },
+  "config": { "WP_DEBUG": true }
+}
