@@ -35,6 +35,9 @@ function add_action($hook, $cb)
 {
     $GLOBALS['wpr_registered_actions'][] = $hook;
 }
+function register_uninstall_hook($file, $cb)
+{
+}
 function wp_next_scheduled($hook)
 {
     return false;

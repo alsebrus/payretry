@@ -199,6 +199,19 @@ function wpr_render_settings_page(): void
     <?php
 }
 
+function wpr_uninstall(): void
+{
+    delete_option('wpr_settings');
+    wp_clear_scheduled_hook('wpr_check');
+    $ids = get_posts(['post_type' => 'shop_coupon', 'numberposts' => -1, 'fields' => 'ids', 'post_status' => 'any']);
+    foreach ($ids as $id) {
+        if (str_starts_with(strtolower(get_the_title($id)), 'recover-')) {
+            wp_delete_post($id, true);
+        }
+    }
+}
+register_uninstall_hook(__FILE__, 'wpr_uninstall');
+
 add_action('woocommerce_payment_failed', function ($order) {
     $order->update_meta_data('_wpr_start', time());
     $order->update_meta_data('_wpr_stage', 0);
