@@ -30,6 +30,33 @@ function __($s, $domain = null)
 {
     return $s;
 }
+function esc_html_e($s, $domain = null)
+{
+    echo $s;
+}
+function esc_url($u)
+{
+    return $u;
+}
+function esc_attr($s)
+{
+    return $s;
+}
+function esc_textarea($s)
+{
+    return $s;
+}
+function checked($a, $b)
+{
+    echo $a === $b ? 'checked' : '';
+}
+function settings_fields($group)
+{
+}
+function submit_button()
+{
+    echo '<input type="submit">';
+}
 
 function add_action($hook, $cb)
 {

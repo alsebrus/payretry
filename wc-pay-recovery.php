@@ -3,7 +3,7 @@
  * Plugin Name: WC Pay Recovery
  * Plugin URI:  https://example.com/wc-pay-recovery
  * Description: Automatic payment-failed reminder emails with a retry link and escalating discount.
- * Version:     0.2.0
+ * Version:     0.3.0
  * Author:      Alexey Babkin <babkin.alexey.1805@gmail.com>
  * Text Domain: wc-pay-recovery
  * Domain Path: /languages
@@ -158,8 +158,36 @@ function wpr_tick(): void
     }
 }
 
+function wpr_render_upsell_page(): void
+{
+    ?>
+    <div class="wrap">
+        <h1><?php esc_html_e('Payment Recovery', 'wc-pay-recovery'); ?></h1>
+        <div style="max-width:640px;background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:24px;">
+            <h2 style="margin-top:0;"><?php esc_html_e('Upgrade to Professional', 'wc-pay-recovery'); ?></h2>
+            <p><?php esc_html_e('The free version recovers failed payments with the default schedule (day 1, 3, 7) and discounts (5%, 10%).', 'wc-pay-recovery'); ?></p>
+            <p><?php esc_html_e('Professional unlocks:', 'wc-pay-recovery'); ?></p>
+            <ul style="list-style:disc;padding-left:20px;">
+                <li><?php esc_html_e('Custom reminder schedule and discount percentages', 'wc-pay-recovery'); ?></li>
+                <li><?php esc_html_e('Editable email template with placeholders', 'wc-pay-recovery'); ?></li>
+                <li><?php esc_html_e('Priority email support', 'wc-pay-recovery'); ?></li>
+            </ul>
+            <p>
+                <a class="button button-primary" href="<?php echo esc_url(wpr_fs()->checkout_url()); ?>">
+                    <?php esc_html_e('Upgrade now — from $9/month', 'wc-pay-recovery'); ?>
+                </a>
+            </p>
+        </div>
+    </div>
+    <?php
+}
+
 function wpr_render_settings_page(): void
 {
+    if (!wpr_is_premium()) {
+        wpr_render_upsell_page();
+        return;
+    }
     $s = wpr_get_settings();
     ?>
     <div class="wrap">
@@ -222,12 +250,9 @@ if (!wp_next_scheduled('wpr_check')) {
     wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', 'wpr_check');
 }
 
-// Premium-only: the settings UI (free build keeps the default 1/3/7 schedule).
-if (wpr_is_premium()) {
-    add_action('admin_menu', function () {
-        add_submenu_page('woocommerce', __('Payment Recovery', 'wc-pay-recovery'), __('Payment Recovery', 'wc-pay-recovery'), 'manage_woocommerce', 'wpr', 'wpr_render_settings_page');
-    });
-    add_action('admin_init', function () {
-        register_setting('wpr', 'wpr_settings', ['sanitize_callback' => 'wpr_sanitize_settings']);
-    });
-}
+add_action('admin_menu', function () {
+    add_submenu_page('woocommerce', __('Payment Recovery', 'wc-pay-recovery'), __('Payment Recovery', 'wc-pay-recovery'), 'manage_woocommerce', 'wpr', 'wpr_render_settings_page');
+});
+add_action('admin_init', function () {
+    register_setting('wpr', 'wpr_settings', ['sanitize_callback' => 'wpr_sanitize_settings']);
+});

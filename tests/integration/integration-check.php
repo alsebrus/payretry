@@ -75,7 +75,17 @@ ok($s[5][1] === 7, 'settings drive discounts');
 delete_option('wpr_settings');
 ok(wpr_schedule() === [1 => [__('your payment did not go through', 'wc-pay-recovery'), 0], 3 => [__('your payment did not go through', 'wc-pay-recovery') . ' + 5% off', 5], 7 => [__('your payment did not go through', 'wc-pay-recovery') . ' + 10% off', 10]], 'defaults restored after delete');
 
-// 6. Hook wiring: cron event registered on plugin load.
+// 6. Free (unlicensed) users get the upgrade banner, not the settings form.
+ok(wpr_is_premium() === false || wpr_is_premium() === true, 'premium gate callable');
+if (!wpr_is_premium()) {
+    ob_start();
+    wpr_render_settings_page();
+    $html = ob_get_clean();
+    ok(str_contains($html, 'Upgrade to Professional'), 'free user sees upsell banner');
+    ok(str_contains($html, esc_url(wpr_fs()->checkout_url())), 'upsell links to in-dashboard checkout');
+}
+
+// 7. Hook wiring: cron event registered on plugin load.
 ok(wp_next_scheduled('wpr_check') !== false, 'daily wpr_check cron is scheduled');
 
 echo "INTEGRATION OK\n";
