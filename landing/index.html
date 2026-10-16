@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WC Pay Recovery — Stop Losing Money to Failed Payments</title>
+<meta name="description" content="WooCommerce plugin that automatically emails customers a retry link with an escalating discount when their payment fails. Recover 15-30% of lost revenue on autopilot.">
+<style>
+  :root {
+    --bg: #fff; --fg: #1a1a2e; --muted: #555; --card: #f7f7fa;
+    --accent: #7c3aed; --accent-fg: #fff; --border: #e4e4ec; --ok: #0a7a3d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #12121a; --fg: #eaeaf2; --muted: #9a9ab0; --card: #1c1c28;
+            --accent: #a78bfa; --accent-fg: #12121a; --border: #2c2c3c; --ok: #34d399; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 18px/1.6 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 48px 20px; }
+  h1 { font-size: 2.2em; line-height: 1.2; margin: 0 0 16px; }
+  h2 { font-size: 1.4em; margin: 40px 0 12px; }
+  .lead { font-size: 1.15em; color: var(--muted); }
+  .cta { display: inline-block; background: var(--accent); color: var(--accent-fg);
+         padding: 14px 28px; border-radius: 10px; text-decoration: none;
+         font-weight: 700; margin: 8px 8px 8px 0; }
+  .alt { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+  .calc { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin: 24px 0; }
+  .calc label { display: block; font-weight: 600; margin: 14px 0 4px; }
+  .calc input { width: 100%; padding: 10px 12px; font-size: 1em; border: 1px solid var(--border);
+                border-radius: 8px; background: var(--bg); color: var(--fg); }
+  .result { font-size: 1.5em; font-weight: 800; margin-top: 18px; color: var(--ok); }
+  .result small { display: block; font-size: .55em; font-weight: 400; color: var(--muted); }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  td:last-child, th:last-child { text-align: right; }
+  .ok::before { content: "✓ "; color: var(--ok); font-weight: 700; }
+  footer { color: var(--muted); font-size: .8em; margin-top: 48px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Stop losing revenue to failed payments</h1>
+<p class="lead">On average <strong>9% of recurring revenue</strong> is silently lost to expired cards,
+insufficient funds and bank declines. WC Pay Recovery emails those customers automatically —
+with a one-click retry link and an escalating discount to win the order back.</p>
+
+<p>
+  <a class="cta" href="https://checkout.freemius.com/?plugin_id=41723&amp;public_key=pk_6b8d86bb94184c2ed0cc3929f4f67&amp;plan_id=72485&amp;billing_cycle=annual">Buy Annual — $79/year</a>
+  <a class="alt" href="https://checkout.freemius.com/?plugin_id=41723&amp;public_key=pk_6b8d86bb94184c2ed0cc3929f4f67&amp;plan_id=72485&amp;billing_cycle=monthly">or $9/month</a>
+  &nbsp;·&nbsp;
+  <a class="alt" href="https://checkout.freemius.com/?plugin_id=41723&amp;public_key=pk_6b8d86bb94184c2ed0cc3929f4f67&amp;plan_id=72485&amp;lifetime=true">Lifetime $199</a>
+</p>
+
+<h2>ROI calculator</h2>
+<div class="calc">
+  <label for="failed">Failed payments per month</label>
+  <input id="failed" type="number" value="20" min="0">
+  <label for="aov">Average order value ($)</label>
+  <input id="aov" type="number" value="80" min="0">
+  <label for="rate">Recovery rate (%) — our customers report 15–30%</label>
+  <input id="rate" type="number" value="20" min="0" max="100">
+  <div class="result" id="result">—</div>
+</div>
+
+<h2>How it works</h2>
+<table>
+  <tr><th>Day</th><th>What the customer gets</th></tr>
+  <tr><td class="ok">Day 1</td><td class="ok">Friendly reminder with a one-click retry link</td></tr>
+  <tr><td class="ok">Day 3</td><td class="ok">Second reminder + automatic <strong>5% discount</strong> coupon</td></tr>
+  <tr><td class="ok">Day 7</td><td class="ok">Last call + automatic <strong>10% discount</strong> coupon</td></tr>
+</table>
+<p class="lead">Schedule, discounts and the email template are fully configurable.
+Works with every WooCommerce payment gateway (Stripe, PayPal, WooPayments…).</p>
+
+<h2>Why shop owners trust it</h2>
+<ul>
+  <li>Set-and-forget: runs on WP-Cron, zero manual work</li>
+  <li>Coupons are created and scoped automatically — no mess in your shop</li>
+  <li>Every line of the reminder flow covered by unit, integration and browser E2E tests</li>
+  <li>14-day money-back guarantee</li>
+</ul>
+
+<p>
+  <a class="cta" href="https://checkout.freemius.com/?plugin_id=41723&amp;public_key=pk_6b8d86bb94184c2ed0cc3929f4f67&amp;plan_id=72485&amp;billing_cycle=annual">Buy Annual — $79/year</a>
+</p>
+
+<footer>WC Pay Recovery is a WooCommerce plugin by Alexey Babkin. Payments are processed by Freemius, Merchant of Record.</footer>
+</div>
+
+<script>
+const fmt = n => n.toLocaleString('en-US', {style: 'currency', currency: 'USD', maximumFractionDigits: 0});
+function calc() {
+  const f = +document.getElementById('failed').value || 0;
+  const a = +document.getElementById('aov').value || 0;
+  const r = (+document.getElementById('rate').value || 0) / 100;
+  const yearly = f * a * r * 12;
+  const net = yearly - 79;
+  const breakEven = a * r > 0 ? Math.ceil(79 / (a * r)) : '?';
+  document.getElementById('result').innerHTML =
+    fmt(net) + ' net profit in year one <small>' + fmt(yearly) + ' recovered − $79 plugin cost · ' +
+    'pays for itself after just ' + breakEven + ' recovered payments</small>';
+}
+document.querySelectorAll('.calc input').forEach(i => i.addEventListener('input', calc));
+calc();
+</script>
+</body>
+</html>
