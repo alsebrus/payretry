@@ -1,5 +1,5 @@
 === WC Pay Recovery ===
-Contributors: kiber
+Contributors: babkin.alexey.1805
 Tags: woocommerce, payment recovery, dunning, failed payments, checkout
 Requires at least: 6.0
 Tested up to: 6.8

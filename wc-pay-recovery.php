@@ -4,7 +4,7 @@
  * Plugin URI:  https://example.com/wc-pay-recovery
  * Description: Automatic payment-failed reminder emails with a retry link and escalating discount.
  * Version:     0.2.0
- * Author:      kiber
+ * Author:      Alexey Babkin <babkin.alexey.1805@gmail.com>
  * Text Domain: wc-pay-recovery
  * Domain Path: /languages
  * Requires PHP: 8.0
