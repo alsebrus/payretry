@@ -15,6 +15,20 @@ $GLOBALS['wpr_coupons'] = [];
 
 require_once dirname(__DIR__, 2) . '/wc-pay-recovery.php';
 
+$GLOBALS['wpr_test_options'] = [];
+function get_option($k, $d = false)
+{
+    return $GLOBALS['wpr_test_options'][$k] ?? $d;
+}
+function wp_parse_args($args, $defaults)
+{
+    return array_merge($defaults, (array) $args);
+}
+function __($s, $domain = null)
+{
+    return $s;
+}
+
 function add_action($hook, $cb)
 {
     $GLOBALS['wpr_registered_actions'][] = $hook;

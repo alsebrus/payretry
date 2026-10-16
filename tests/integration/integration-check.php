@@ -62,7 +62,20 @@ ok((int) $order->get_meta('_wpr_stage') === 7, 'stage recorded as 7');
 wpr_tick();
 ok(count(get_option('wpr_mail_log', [])) === 3, 'no reminders after day 7');
 
-// 5. Hook wiring: cron event registered on plugin load.
+// 5. Saved settings actually drive the schedule (and can be reset to defaults).
+update_option('wpr_settings', wpr_sanitize_settings([
+    'enabled' => 'yes',
+    'days' => '2,5',
+    'discounts' => '0,7',
+    'template' => "Hi {name}\n{link}\n{coupon}",
+]));
+$s = wpr_schedule();
+ok(array_keys($s) === [2, 5], 'settings drive reminder days');
+ok($s[5][1] === 7, 'settings drive discounts');
+delete_option('wpr_settings');
+ok(wpr_schedule() === [1 => [__('your payment did not go through', 'wc-pay-recovery'), 0], 3 => [__('your payment did not go through', 'wc-pay-recovery') . ' + 5% off', 5], 7 => [__('your payment did not go through', 'wc-pay-recovery') . ' + 10% off', 10]], 'defaults restored after delete');
+
+// 6. Hook wiring: cron event registered on plugin load.
 ok(wp_next_scheduled('wpr_check') !== false, 'daily wpr_check cron is scheduled');
 
 echo "INTEGRATION OK\n";

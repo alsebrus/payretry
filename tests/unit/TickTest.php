@@ -10,6 +10,7 @@ class TickTest extends TestCase
         $GLOBALS['wpr_mails'] = [];
         $GLOBALS['wpr_coupons'] = [];
         $GLOBALS['wpr_fake_orders'] = [];
+        $GLOBALS['wpr_test_options'] = [];
     }
 
     private function failedOrder(int $daysAgoStart, ?int $createdDaysAgo = null): FakeOrder

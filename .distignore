@@ -1,0 +1,15 @@
+# Directories
+/node_modules
+/tests
+/.wp-env.json
+/vendor
+
+# Files
+/.gitignore
+/composer.json
+/composer.lock
+/phpunit.xml
+/.distignore
+/.git
+/.github
+/*.md
