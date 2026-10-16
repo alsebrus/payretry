@@ -15,7 +15,7 @@ $GLOBALS['wpr_mails'] = [];
 $GLOBALS['wpr_fake_orders'] = [];
 $GLOBALS['wpr_coupons'] = [];
 
-require_once dirname(__DIR__, 2) . '/wc-pay-recovery.php';
+require_once dirname(__DIR__, 2) . '/payretry.php';
 
 $GLOBALS['wpr_test_options'] = [];
 function get_option($k, $d = false)

@@ -1,12 +1,12 @@
 # Directories
 /node_modules
 /tests
+/build
 /.wp-env.json
+/.phpunit.result.cache
 
 # Files
 /.gitignore
-/composer.json
-/composer.lock
 /phpunit.xml
 /.distignore
 /.git

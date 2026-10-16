@@ -1,10 +1,10 @@
-=== WC Pay Recovery ===
+=== PayRetry ===
 Contributors: alsebrus
 Tags: woocommerce, payment recovery, dunning, failed payments, checkout
 Requires at least: 6.0
-Tested up to: 6.8
+Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.3.0
+Stable tag: 0.3.1
 License: GPLv2 or later
 
 Automatic payment-failed reminder emails with a retry link and escalating discount.
@@ -23,6 +23,9 @@ back. Failed payments are silent revenue loss — this plugin brings it back.
 3. Go to WooCommerce → Payment Recovery to configure the reminder schedule.
 
 == Changelog ==
+
+= 0.3.1 =
+* Renamed to PayRetry for the WordPress.org directory (WC is a reserved trademark).
 
 = 0.3.0 =
 * Upgrade banner for free users with in-dashboard checkout.

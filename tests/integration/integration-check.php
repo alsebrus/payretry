@@ -73,7 +73,7 @@ $s = wpr_schedule();
 ok(array_keys($s) === [2, 5], 'settings drive reminder days');
 ok($s[5][1] === 7, 'settings drive discounts');
 delete_option('wpr_settings');
-ok(wpr_schedule() === [1 => [__('your payment did not go through', 'wc-pay-recovery'), 0], 3 => [__('your payment did not go through', 'wc-pay-recovery') . ' + 5% off', 5], 7 => [__('your payment did not go through', 'wc-pay-recovery') . ' + 10% off', 10]], 'defaults restored after delete');
+ok(wpr_schedule() === [1 => [__('your payment did not go through', 'payretry'), 0], 3 => [__('your payment did not go through', 'payretry') . ' + 5% off', 5], 7 => [__('your payment did not go through', 'payretry') . ' + 10% off', 10]], 'defaults restored after delete');
 
 // 6. Free (unlicensed) users get the upgrade banner, not the settings form.
 ok(wpr_is_premium() === false || wpr_is_premium() === true, 'premium gate callable');

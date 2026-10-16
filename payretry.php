@@ -1,18 +1,22 @@
 <?php
 /**
- * Plugin Name: WC Pay Recovery
- * Plugin URI:  https://example.com/wc-pay-recovery
+ * Plugin Name: PayRetry - Failed Payment Recovery for WooCommerce
  * Description: Automatic payment-failed reminder emails with a retry link and escalating discount.
- * Version:     0.3.0
+ * Version:     0.3.1
  * Author:      Alexey Babkin <babkin.alexey.1805@gmail.com>
- * Text Domain: wc-pay-recovery
+ * Text Domain: payretry
  * Domain Path: /languages
+ * License:     GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Requires PHP: 8.0
  * Requires Plugins: woocommerce
  * Requires at least: 6.0
  * WC requires at least: 8.0
  * WC tested up to: 9.9
  */
+if (!defined('ABSPATH')) {
+    exit;
+}
 
 // Freemius licensing (id/public key from dashboard.freemius.com, product 41723).
 // WPR_NO_FREEMIUS lets the unit-test bootstrap load the plugin without the SDK.
@@ -24,7 +28,7 @@ if (!defined('WPR_NO_FREEMIUS') && file_exists(dirname(__FILE__) . '/vendor/free
             require_once dirname(__FILE__) . '/vendor/freemius/wordpress-sdk/start.php';
             $wpr_fs = fs_dynamic_init([
                 'id' => '41723',
-                'slug' => 'wc-pay-recovery',
+                'slug' => 'payretry',
                 'premium_slug' => 'wc-pay-recovery-premium',
                 'type' => 'plugin',
                 'public_key' => 'pk_6b8d86bb94184c2ed0cc3929f4f67',
@@ -97,8 +101,10 @@ function wpr_schedule(): array
     $out = [];
     foreach ($s['days'] as $i => $day) {
         $discount = $s['discounts'][$i] ?? 0;
+        /* translators: %d: discount percent added when a reminder carries a coupon. */
+        $suffix = $discount ? sprintf(__(' + %d%% off', 'payretry'), $discount) : '';
         $out[(int) $day] = [
-            __('your payment did not go through', 'wc-pay-recovery') . ($discount ? sprintf(__(' + %d%% off', 'wc-pay-recovery'), $discount) : ''),
+            __('your payment did not go through', 'payretry') . $suffix,
             $discount,
         ];
     }
@@ -141,10 +147,12 @@ function wpr_tick(): void
                 $coupon->save();
                 $link = add_query_arg('coupon', rawurlencode($code), $link);
             }
+            /* translators: 1: discount percent, 2: coupon code. */
+            $coupon_line = $code ? sprintf(__('Discount code (%1$d%%): %2$s', 'payretry'), $discount, $code) : '';
             $body = strtr(wpr_get_settings()['template'], [
                 '{name}'   => $order->get_billing_first_name(),
                 '{link}'   => $link,
-                '{coupon}' => $code ? sprintf(__('Discount code (%d%%): %s', 'wc-pay-recovery'), $discount, $code) : '',
+                '{coupon}' => $coupon_line,
             ]);
             wp_mail(
                 $order->get_billing_email(),
@@ -162,19 +170,19 @@ function wpr_render_upsell_page(): void
 {
     ?>
     <div class="wrap">
-        <h1><?php esc_html_e('Payment Recovery', 'wc-pay-recovery'); ?></h1>
+        <h1><?php esc_html_e('Payment Recovery', 'payretry'); ?></h1>
         <div style="max-width:640px;background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:24px;">
-            <h2 style="margin-top:0;"><?php esc_html_e('Upgrade to Professional', 'wc-pay-recovery'); ?></h2>
-            <p><?php esc_html_e('The free version recovers failed payments with the default schedule (day 1, 3, 7) and discounts (5%, 10%).', 'wc-pay-recovery'); ?></p>
-            <p><?php esc_html_e('Professional unlocks:', 'wc-pay-recovery'); ?></p>
+            <h2 style="margin-top:0;"><?php esc_html_e('Upgrade to Professional', 'payretry'); ?></h2>
+            <p><?php esc_html_e('The free version recovers failed payments with the default schedule (day 1, 3, 7) and discounts (5%, 10%).', 'payretry'); ?></p>
+            <p><?php esc_html_e('Professional unlocks:', 'payretry'); ?></p>
             <ul style="list-style:disc;padding-left:20px;">
-                <li><?php esc_html_e('Custom reminder schedule and discount percentages', 'wc-pay-recovery'); ?></li>
-                <li><?php esc_html_e('Editable email template with placeholders', 'wc-pay-recovery'); ?></li>
-                <li><?php esc_html_e('Priority email support', 'wc-pay-recovery'); ?></li>
+                <li><?php esc_html_e('Custom reminder schedule and discount percentages', 'payretry'); ?></li>
+                <li><?php esc_html_e('Editable email template with placeholders', 'payretry'); ?></li>
+                <li><?php esc_html_e('Priority email support', 'payretry'); ?></li>
             </ul>
             <p>
                 <a class="button button-primary" href="<?php echo esc_url(wpr_fs()->checkout_url()); ?>">
-                    <?php esc_html_e('Upgrade now — from $9/month', 'wc-pay-recovery'); ?>
+                    <?php esc_html_e('Upgrade now — from $9/month', 'payretry'); ?>
                 </a>
             </p>
         </div>
@@ -191,33 +199,33 @@ function wpr_render_settings_page(): void
     $s = wpr_get_settings();
     ?>
     <div class="wrap">
-        <h1><?php esc_html_e('Payment Recovery', 'wc-pay-recovery'); ?></h1>
+        <h1><?php esc_html_e('Payment Recovery', 'payretry'); ?></h1>
         <form method="post" action="options.php">
             <?php settings_fields('wpr'); ?>
             <table class="form-table" role="presentation">
                 <tr>
-                    <th scope="row"><?php esc_html_e('Enable reminders', 'wc-pay-recovery'); ?></th>
-                    <td><label><input type="checkbox" name="wpr_settings[enabled]" value="yes" <?php checked($s['enabled'], 'yes'); ?>> <?php esc_html_e('Send reminder emails for failed payments', 'wc-pay-recovery'); ?></label></td>
+                    <th scope="row"><?php esc_html_e('Enable reminders', 'payretry'); ?></th>
+                    <td><label><input type="checkbox" name="wpr_settings[enabled]" value="yes" <?php checked($s['enabled'], 'yes'); ?>> <?php esc_html_e('Send reminder emails for failed payments', 'payretry'); ?></label></td>
                 </tr>
                 <tr>
-                    <th scope="row"><?php esc_html_e('Reminder days', 'wc-pay-recovery'); ?></th>
+                    <th scope="row"><?php esc_html_e('Reminder days', 'payretry'); ?></th>
                     <td>
                         <input type="text" name="wpr_settings[days]" value="<?php echo esc_attr(implode(', ', $s['days'])); ?>" class="regular-text">
-                        <p class="description"><?php esc_html_e('Comma-separated days after the failed payment, e.g. 1, 3, 7', 'wc-pay-recovery'); ?></p>
+                        <p class="description"><?php esc_html_e('Comma-separated days after the failed payment, e.g. 1, 3, 7', 'payretry'); ?></p>
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><?php esc_html_e('Discount per reminder (%)', 'wc-pay-recovery'); ?></th>
+                    <th scope="row"><?php esc_html_e('Discount per reminder (%)', 'payretry'); ?></th>
                     <td>
                         <input type="text" name="wpr_settings[discounts]" value="<?php echo esc_attr(implode(', ', $s['discounts'])); ?>" class="regular-text">
-                        <p class="description"><?php esc_html_e('One value per reminder day; 0 = no discount, e.g. 0, 5, 10', 'wc-pay-recovery'); ?></p>
+                        <p class="description"><?php esc_html_e('One value per reminder day; 0 = no discount, e.g. 0, 5, 10', 'payretry'); ?></p>
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row"><?php esc_html_e('Email template', 'wc-pay-recovery'); ?></th>
+                    <th scope="row"><?php esc_html_e('Email template', 'payretry'); ?></th>
                     <td>
                         <textarea name="wpr_settings[template]" rows="7" class="large-text code"><?php echo esc_textarea($s['template']); ?></textarea>
-                        <p class="description"><?php esc_html_e('Placeholders: {name}, {link} (required, retry link), {coupon} (discount line)', 'wc-pay-recovery'); ?></p>
+                        <p class="description"><?php esc_html_e('Placeholders: {name}, {link} (required, retry link), {coupon} (discount line)', 'payretry'); ?></p>
                     </td>
                 </tr>
             </table>
@@ -251,7 +259,7 @@ if (!wp_next_scheduled('wpr_check')) {
 }
 
 add_action('admin_menu', function () {
-    add_submenu_page('woocommerce', __('Payment Recovery', 'wc-pay-recovery'), __('Payment Recovery', 'wc-pay-recovery'), 'manage_woocommerce', 'wpr', 'wpr_render_settings_page');
+    add_submenu_page('woocommerce', __('Payment Recovery', 'payretry'), __('Payment Recovery', 'payretry'), 'manage_woocommerce', 'wpr', 'wpr_render_settings_page');
 });
 add_action('admin_init', function () {
     register_setting('wpr', 'wpr_settings', ['sanitize_callback' => 'wpr_sanitize_settings']);
