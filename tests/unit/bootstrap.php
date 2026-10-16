@@ -7,6 +7,8 @@
 define('ABSPATH', __DIR__);
 define('DAY_IN_SECONDS', 86400);
 define('HOUR_IN_SECONDS', 3600);
+// Skip the real Freemius SDK boot: it needs a full WordPress, we have stubs.
+define('WPR_NO_FREEMIUS', true);
 
 $GLOBALS['wpr_registered_actions'] = [];
 $GLOBALS['wpr_mails'] = [];

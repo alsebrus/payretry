@@ -16,7 +16,7 @@ class PremiumGateTest extends TestCase
     public function testGateFollowsFreemiusWhenSdkPresent(): void
     {
         if (!function_exists('wpr_fs')) {
-            eval('function wpr_fs() { return new class { public function can_use_premium() { return false; } }; }');
+            eval('function wpr_fs() { return new class { public function can_use_premium_code() { return false; } }; }');
         }
         $this->assertFalse(wpr_is_premium(), 'with SDK present the gate follows the license');
     }

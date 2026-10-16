@@ -14,6 +14,38 @@
  * WC tested up to: 9.9
  */
 
+// Freemius licensing (id/public key from dashboard.freemius.com, product 41723).
+// WPR_NO_FREEMIUS lets the unit-test bootstrap load the plugin without the SDK.
+if (!defined('WPR_NO_FREEMIUS') && file_exists(dirname(__FILE__) . '/vendor/freemius/wordpress-sdk/start.php') && !function_exists('wpr_fs')) {
+    function wpr_fs()
+    {
+        global $wpr_fs;
+        if (!isset($wpr_fs)) {
+            require_once dirname(__FILE__) . '/vendor/freemius/wordpress-sdk/start.php';
+            $wpr_fs = fs_dynamic_init([
+                'id' => '41723',
+                'slug' => 'wc-pay-recovery',
+                'premium_slug' => 'wc-pay-recovery-premium',
+                'type' => 'plugin',
+                'public_key' => 'pk_6b8d86bb94184c2ed0cc3929f4f67',
+                'is_premium' => true,
+                'has_premium_version' => true,
+                'has_paid_plans' => true,
+                'is_org_compliant' => true,
+                'menu' => [
+                    'slug' => 'wpr',
+                    'parent' => ['slug' => 'woocommerce'],
+                ],
+            ]);
+        }
+        return $wpr_fs;
+    }
+    // Init Freemius.
+    wpr_fs();
+    // Signal that SDK was initiated.
+    do_action('wpr_fs_loaded');
+}
+
 // day => [email subject suffix, discount %]. Escalating: pay later, bigger incentive.
 function wpr_default_settings(): array
 {
@@ -37,7 +69,7 @@ function wpr_is_premium(): bool
     if (!function_exists('wpr_fs')) {
         return true;
     }
-    return wpr_fs()->can_use_premium();
+    return wpr_fs()->can_use_premium_code();
 }
 
 function wpr_sanitize_settings($input): array

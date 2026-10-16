@@ -3,7 +3,8 @@
   "description": "WooCommerce plugin: automatic payment-failed reminders with retry link and escalating discount.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
-  "require": { "php": ">=8.0" },
+  "require": { "php": ">=8.0",
+    "freemius/wordpress-sdk": "^2.13" },
   "require-dev": { "phpunit/phpunit": "^12.0" },
   "scripts": { "test:unit": "phpunit -c phpunit.xml" }
 }
