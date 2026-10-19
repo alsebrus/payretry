@@ -45,8 +45,13 @@ if (!isset($pp_fs) && file_exists(dirname(__FILE__) . '/vendor/freemius/start.ph
 /**
  * Pure analysis: classify orders into reminder/recovery metrics.
  *
- * @param array $failed  orders with a failed status (each exposes get_meta()).
+ * @param array $failed  all orders of the period (recovered ones included: they
+ *                       are paid now but keep _wpr_stage, which drives sent).
  * @param array $paid    paid orders with coupon items (each exposes get_items()/get_total()).
+ * sent counts every payment that received reminders (a recovered order is paid
+ * now but keeps its _wpr_stage meta), so rate is recovered/sent, not over the
+ * currently-failed snapshot.
+ *
  * @return array{sent:int, recovered:int, revenue:float, rate:float}
  */
 function wprp_collect(array $failed, array $paid): array
@@ -72,7 +77,7 @@ function wprp_collect(array $failed, array $paid): array
         'sent'      => $sent,
         'recovered' => $recovered,
         'revenue'   => $revenue,
-        'rate'      => count($failed) > 0 ? round($recovered / count($failed) * 100, 1) : 0.0,
+        'rate'      => $sent > 0 ? round(min(100.0, $recovered / $sent * 100), 1) : 0.0,
     ];
 }
 
@@ -80,7 +85,7 @@ function wprp_summary(int $days): array
 {
     $since = time() - $days * DAY_IN_SECONDS;
     return wprp_collect(
-        wc_get_orders(['status' => 'failed', 'date_created' => '>' . $since, 'limit' => -1]),
+        wc_get_orders(['date_created' => '>' . $since, 'limit' => -1]),
         wc_get_orders(['status' => ['processing', 'completed'], 'date_created' => '>' . $since, 'limit' => -1])
     );
 }
