@@ -26,6 +26,10 @@ function wp_parse_args($args, $defaults)
 {
     return array_merge($defaults, (array) $args);
 }
+function sanitize_textarea_field($s)
+{
+    return trim($s);
+}
 function __($s, $domain = null)
 {
     return $s;

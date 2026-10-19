@@ -2,7 +2,11 @@
 /node_modules
 /tests
 /build
+/vendor
+/.wrangler
 /svn-assets
+/landing
+/wrangler.jsonc
 /.wp-env.json
 /.phpunit.result.cache
 

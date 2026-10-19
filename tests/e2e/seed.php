@@ -19,6 +19,8 @@ foreach ($pages as $slug => [$title, $content]) {
     wp_update_post(['ID' => $id, 'post_content' => $content]); // strip any block markup
     update_option('woocommerce_' . ($slug === 'my-account' ? 'myaccount' : $slug) . '_page_id', $id);
 }
+update_option('woocommerce_coming_soon', 'no');
+update_option('woocommerce_store_pages_only', 'no');
 update_option('woocommerce_enable_checkout_login_reminder', 'no');
 update_option('woocommerce_enable_signup_and_login_from_checkout', 'no');
 update_option('woocommerce_default_country', 'US:CA');

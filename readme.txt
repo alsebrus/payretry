@@ -1,20 +1,34 @@
-=== PayRetry ===
+=== PayRetry - Failed Payment Recovery for WooCommerce ===
 Contributors: alsebrus
 Tags: woocommerce, payment recovery, dunning, failed payments, checkout
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.3.1
+Stable tag: 0.4.0
 License: GPLv2 or later
 
 Automatic payment-failed reminder emails with a retry link and escalating discount.
 
 == Description ==
 
-When a WooCommerce payment fails, WC Pay Recovery automatically emails the
-customer a reminder with a one-click retry link on day 1, 3 and 7 (configurable),
-adding an escalating discount coupon (5% then 10% by default) to win the order
-back. Failed payments are silent revenue loss — this plugin brings it back.
+When a WooCommerce payment fails, PayRetry automatically emails the customer a
+reminder with a one-click retry link on day 1, 3 and 7, adding an escalating
+discount coupon (5% then 10% by default) to win the order back. Failed payments
+are silent revenue loss — this plugin brings it back.
+
+Everything works out of the box with sensible defaults; no configuration or
+external service is required. To customize it, go to WooCommerce -> Payment
+Recovery in your wp-admin:
+
+* Enable or disable the reminders.
+* Set the reminder days (comma-separated, e.g. 1, 3, 7).
+* Set the discount percentage per reminder (e.g. 0, 5, 10); a coupon for that
+  percent is created automatically and appended to the retry link.
+* Edit the email template. Placeholders: {name}, {link} (retry link),
+  {coupon} (discount line).
+
+The plugin works with any WooCommerce payment gateway and sends its emails
+through wp_mail.
 
 == Installation ==
 
@@ -23,6 +37,12 @@ back. Failed payments are silent revenue loss — this plugin brings it back.
 3. Go to WooCommerce → Payment Recovery to configure the reminder schedule.
 
 == Changelog ==
+
+= 0.4.0 =
+* All settings are now available to every user; removed license gating from the WordPress.org build.
+* Removed the Freemius SDK and its background calls from this build; the upsell is a plain link.
+* Sanitize the email template setting with sanitize_textarea_field().
+* Unified the display name between readme and plugin header; dropped dev dependencies from the distribution.
 
 = 0.3.1 =
 * Renamed to PayRetry for the WordPress.org directory (WC is a reserved trademark).

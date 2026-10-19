@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PayRetry - Failed Payment Recovery for WooCommerce
  * Description: Automatic payment-failed reminder emails with a retry link and escalating discount.
- * Version:     0.3.1
+ * Version:     0.4.0
  * Author:      Alexey Babkin <babkin.alexey.1805@gmail.com>
  * Text Domain: payretry
  * Domain Path: /languages
@@ -16,38 +16,6 @@
  */
 if (!defined('ABSPATH')) {
     exit;
-}
-
-// Freemius licensing (id/public key from dashboard.freemius.com, product 41723).
-// WPR_NO_FREEMIUS lets the unit-test bootstrap load the plugin without the SDK.
-if (!defined('WPR_NO_FREEMIUS') && file_exists(dirname(__FILE__) . '/vendor/freemius/wordpress-sdk/start.php') && !function_exists('wpr_fs')) {
-    function wpr_fs()
-    {
-        global $wpr_fs;
-        if (!isset($wpr_fs)) {
-            require_once dirname(__FILE__) . '/vendor/freemius/wordpress-sdk/start.php';
-            $wpr_fs = fs_dynamic_init([
-                'id' => '41723',
-                'slug' => 'payretry',
-                'premium_slug' => 'wc-pay-recovery-premium',
-                'type' => 'plugin',
-                'public_key' => 'pk_6b8d86bb94184c2ed0cc3929f4f67',
-                'is_premium' => true,
-                'has_premium_version' => true,
-                'has_paid_plans' => true,
-                'is_org_compliant' => true,
-                'menu' => [
-                    'slug' => 'wpr',
-                    'parent' => ['slug' => 'woocommerce'],
-                ],
-            ]);
-        }
-        return $wpr_fs;
-    }
-    // Init Freemius.
-    wpr_fs();
-    // Signal that SDK was initiated.
-    do_action('wpr_fs_loaded');
 }
 
 // day => [email subject suffix, discount %]. Escalating: pay later, bigger incentive.
@@ -66,16 +34,6 @@ function wpr_get_settings(): array
     return wp_parse_args(get_option('wpr_settings', []), wpr_default_settings());
 }
 
-// Premium gate. While the Freemius SDK is not bundled (dev/test), fall back to
-// premium so settings stay usable; the wordpress.org free build strips this.
-function wpr_is_premium(): bool
-{
-    if (!function_exists('wpr_fs')) {
-        return true;
-    }
-    return wpr_fs()->can_use_premium_code();
-}
-
 function wpr_sanitize_settings($input): array
 {
     $out = get_option('wpr_settings', []);
@@ -88,7 +46,7 @@ function wpr_sanitize_settings($input): array
         $out['discounts'] = $discounts;
     }
 
-    $template = (string) ($input['template'] ?? '');
+    $template = sanitize_textarea_field((string) ($input['template'] ?? ''));
     if (trim($template) !== '' && str_contains($template, '{link}')) {
         $out['template'] = $template;
     }
@@ -166,36 +124,8 @@ function wpr_tick(): void
     }
 }
 
-function wpr_render_upsell_page(): void
-{
-    ?>
-    <div class="wrap">
-        <h1><?php esc_html_e('Payment Recovery', 'payretry'); ?></h1>
-        <div style="max-width:640px;background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:24px;">
-            <h2 style="margin-top:0;"><?php esc_html_e('Upgrade to Professional', 'payretry'); ?></h2>
-            <p><?php esc_html_e('The free version recovers failed payments with the default schedule (day 1, 3, 7) and discounts (5%, 10%).', 'payretry'); ?></p>
-            <p><?php esc_html_e('Professional unlocks:', 'payretry'); ?></p>
-            <ul style="list-style:disc;padding-left:20px;">
-                <li><?php esc_html_e('Custom reminder schedule and discount percentages', 'payretry'); ?></li>
-                <li><?php esc_html_e('Editable email template with placeholders', 'payretry'); ?></li>
-                <li><?php esc_html_e('Priority email support', 'payretry'); ?></li>
-            </ul>
-            <p>
-                <a class="button button-primary" href="<?php echo esc_url(wpr_fs()->checkout_url()); ?>">
-                    <?php esc_html_e('Upgrade now — from $9/month', 'payretry'); ?>
-                </a>
-            </p>
-        </div>
-    </div>
-    <?php
-}
-
 function wpr_render_settings_page(): void
 {
-    if (!wpr_is_premium()) {
-        wpr_render_upsell_page();
-        return;
-    }
     $s = wpr_get_settings();
     ?>
     <div class="wrap">

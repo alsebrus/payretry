@@ -13,7 +13,11 @@ function ok($cond, $msg)
     }
 }
 
+// Isolate from state accumulated by previous runs (this is a throwaway test DB).
 delete_option('wpr_mail_log');
+foreach (wc_get_orders(['status' => 'failed', 'limit' => -1]) as $stale) {
+    $stale->delete(true);
+}
 
 function wpr_make_failed_order(int $daysAgoStart, bool $withMeta = true): int
 {
@@ -75,15 +79,12 @@ ok($s[5][1] === 7, 'settings drive discounts');
 delete_option('wpr_settings');
 ok(wpr_schedule() === [1 => [__('your payment did not go through', 'payretry'), 0], 3 => [__('your payment did not go through', 'payretry') . ' + 5% off', 5], 7 => [__('your payment did not go through', 'payretry') . ' + 10% off', 10]], 'defaults restored after delete');
 
-// 6. Free (unlicensed) users get the upgrade banner, not the settings form.
-ok(wpr_is_premium() === false || wpr_is_premium() === true, 'premium gate callable');
-if (!wpr_is_premium()) {
-    ob_start();
-    wpr_render_settings_page();
-    $html = ob_get_clean();
-    ok(str_contains($html, 'Upgrade to Professional'), 'free user sees upsell banner');
-    ok(str_contains($html, esc_url(wpr_fs()->checkout_url())), 'upsell links to in-dashboard checkout');
-}
+// 6. The settings form renders for everyone (no license gating).
+ob_start();
+wpr_render_settings_page();
+$html = ob_get_clean();
+ok(str_contains($html, 'wpr_settings[days]'), 'settings form renders');
+ok(!str_contains($html, 'Upgrade to Professional'), 'no license-gated upsell');
 
 // 7. Hook wiring: cron event registered on plugin load.
 ok(wp_next_scheduled('wpr_check') !== false, 'daily wpr_check cron is scheduled');
