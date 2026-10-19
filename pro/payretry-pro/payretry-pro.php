@@ -46,20 +46,20 @@ if (!isset($pp_fs) && file_exists(dirname(__FILE__) . '/vendor/freemius/start.ph
  * Pure analysis: classify orders into reminder/recovery metrics.
  *
  * @param array $failed  all orders of the period (recovered ones included: they
- *                       are paid now but keep _wpr_stage, which drives sent).
+ *                       are paid now but keep _wpr_start, set the moment the
+ *                       payment failed).
  * @param array $paid    paid orders with coupon items (each exposes get_items()/get_total()).
- * sent counts every payment that received reminders (a recovered order is paid
- * now but keeps its _wpr_stage meta), so rate is recovered/sent, not over the
- * currently-failed snapshot.
+ * A failed payment counts as soon as it fails (hook `woocommerce_payment_failed`
+ * writes _wpr_start), independent of any reminder email or coupon.
  *
- * @return array{sent:int, recovered:int, revenue:float, rate:float}
+ * @return array{failed:int, recovered:int, revenue:float, rate:float}
  */
 function wprp_collect(array $failed, array $paid): array
 {
-    $sent = 0;
+    $failed_count = 0;
     foreach ($failed as $order) {
-        if ((int) $order->get_meta('_wpr_stage') > 0) {
-            $sent++;
+        if ((int) $order->get_meta('_wpr_start') > 0) {
+            $failed_count++;
         }
     }
     $recovered = 0;
@@ -74,10 +74,10 @@ function wprp_collect(array $failed, array $paid): array
         }
     }
     return [
-        'sent'      => $sent,
+        'failed'    => $failed_count,
         'recovered' => $recovered,
         'revenue'   => $revenue,
-        'rate'      => $sent > 0 ? round(min(100.0, $recovered / $sent * 100), 1) : 0.0,
+        'rate'      => $failed_count > 0 ? round(min(100.0, $recovered / $failed_count * 100), 1) : 0.0,
     ];
 }
 
@@ -121,7 +121,7 @@ function wprp_render_report_page(): void
         </p>
         <table class="widefat striped" style="max-width:720px">
             <tr><th><?php esc_html_e('Metric', 'payretry-pro'); ?></th><th><?php esc_html_e('Value', 'payretry-pro'); ?></th></tr>
-            <tr><td><?php esc_html_e('Failed payments with reminders sent', 'payretry-pro'); ?></td><td><?php echo esc_html((string) $s['sent']); ?></td></tr>
+            <tr><td><?php esc_html_e('Failed payments', 'payretry-pro'); ?></td><td><?php echo esc_html((string) $s['failed']); ?></td></tr>
             <tr><td><?php esc_html_e('Recovered orders (via RECOVER coupon)', 'payretry-pro'); ?></td><td><?php echo esc_html((string) $s['recovered']); ?></td></tr>
             <tr><td><?php esc_html_e('Recovered revenue', 'payretry-pro'); ?></td><td><strong><?php echo wp_kses_post(wc_price($s['revenue'])); ?></strong></td></tr>
             <tr><td><?php esc_html_e('Recovery rate', 'payretry-pro'); ?></td><td><?php echo esc_html((string) $s['rate']); ?>%</td></tr>

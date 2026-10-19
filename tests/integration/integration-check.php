@@ -97,6 +97,7 @@ $item = new WC_Order_Item_Coupon();
 $item->set_props(['code' => 'RECOVER-PRO-TEST', 'discount' => 5, 'discount_tax' => 0]);
 $paid->add_item($item);
 $paid->set_total(42.50);
+$paid->update_meta_data('_wpr_start', time() - 3 * DAY_IN_SECONDS); // failed before recovery
 $paid->update_meta_data('_wpr_stage', 3); // reminders were sent before the coupon
 $paid->save();
 $ps = wprp_summary(30);

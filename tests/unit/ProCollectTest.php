@@ -12,7 +12,8 @@ class ProCollectTest extends TestCase
 
     private function paid(array $coupons, float $total, int $stage = 0): FakeOrder
     {
-        $o = new FakeOrder(time(), ['_wpr_stage' => $stage]);
+        // a recovered order keeps the _wpr_start anchor of its failure
+        $o = new FakeOrder(time(), ['_wpr_stage' => $stage, '_wpr_start' => $stage > 0 ? time() - 3600 : 0]);
         $o->coupons = $coupons;
         $o->total = $total;
         return $o;
@@ -21,15 +22,16 @@ class ProCollectTest extends TestCase
     public function testEmptyInput(): void
     {
         $this->assertSame(
-            ['sent' => 0, 'recovered' => 0, 'revenue' => 0.0, 'rate' => 0.0],
+            ['failed' => 0, 'recovered' => 0, 'revenue' => 0.0, 'rate' => 0.0],
             wprp_collect([], [])
         );
     }
 
-    public function testSentCountsOrdersWithReminders(): void
+    public function testFailedCountsPaymentsAnchoredByFailure(): void
     {
+        // _wpr_start is written the moment a payment fails, no email needed
         $s = wprp_collect([$this->failed(0), $this->failed(1), $this->failed(7)], []);
-        $this->assertSame(2, $s['sent'], 'stage > 0 means reminders were sent');
+        $this->assertSame(3, $s['failed'], 'every anchored failure counts, even before any reminder');
         $this->assertSame(0.0, $s['rate']);
     }
 
@@ -54,7 +56,7 @@ class ProCollectTest extends TestCase
             [$this->failed(7), $recovered],
             [$recovered, $this->paid([], 10.0)]
         );
-        $this->assertSame(2, $s['sent'], 'both received reminders');
+        $this->assertSame(2, $s['failed'], 'the open failed and the recovered one both count');
         $this->assertSame(1, $s['recovered']);
         $this->assertSame(50.0, $s['rate'], '1 recovered of 2 reminded');
     }
