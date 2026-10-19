@@ -4,7 +4,7 @@ Tags: woocommerce, payment recovery, revenue reports, failed payments
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 8.0
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 License: GPLv2 or later
 
 Revenue recovery reports for PayRetry: recovered orders, recovered revenue and recovery rate for your failed-payment reminders.
@@ -28,6 +28,10 @@ Requires the free PayRetry plugin to be installed and active.
 1. Open WooCommerce → PayRetry Pro.
 
 == Changelog ==
+
+= 0.1.1 =
+* Fixed currency formatting in the report (uses wc_price: proper $42.50 instead of raw HTML and symbol-after-number).
+* Updated plugin URI to https://payretry-woo.oreviq.com/.
 
 = 0.1.0 =
 * Initial release: revenue recovery report (sent reminders, recovered orders, recovered revenue, recovery rate) with 7/30/90/365-day ranges.
