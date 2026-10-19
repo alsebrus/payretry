@@ -2,7 +2,7 @@
 /**
  * Plugin Name: PayRetry - Failed Payment Recovery for WooCommerce
  * Description: Automatic payment-failed reminder emails with a retry link and escalating discount.
- * Version:     0.4.0
+ * Version:     0.4.1
  * Author:      Alexey Babkin <babkin.alexey.1805@gmail.com>
  * Text Domain: payretry
  * Domain Path: /languages
