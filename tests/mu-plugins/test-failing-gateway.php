@@ -17,6 +17,7 @@ add_action('plugins_loaded', function () {
             $this->id = 'wpr_test_failing';
             $this->method_title = 'Test Failing Card';
             $this->method_description = 'Always declines. For automated tests only.';
+            $this->description = 'Always declines. For automated tests only.';
             $this->enabled = 'yes';
             $this->has_fields = false;
         }

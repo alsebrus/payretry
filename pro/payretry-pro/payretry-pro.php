@@ -118,7 +118,7 @@ function wprp_render_report_page(): void
             <tr><th><?php esc_html_e('Metric', 'payretry-pro'); ?></th><th><?php esc_html_e('Value', 'payretry-pro'); ?></th></tr>
             <tr><td><?php esc_html_e('Failed payments with reminders sent', 'payretry-pro'); ?></td><td><?php echo esc_html((string) $s['sent']); ?></td></tr>
             <tr><td><?php esc_html_e('Recovered orders (via RECOVER coupon)', 'payretry-pro'); ?></td><td><?php echo esc_html((string) $s['recovered']); ?></td></tr>
-            <tr><td><?php esc_html_e('Recovered revenue', 'payretry-pro'); ?></td><td><strong><?php echo esc_html( wp_strip_all_tags( number_format_i18n( $s['revenue'], 2 ) ) ); ?></strong> <?php echo esc_html(get_woocommerce_currency_symbol()); ?></td></tr>
+            <tr><td><?php esc_html_e('Recovered revenue', 'payretry-pro'); ?></td><td><strong><?php echo wp_kses_post(wc_price($s['revenue'])); ?></strong></td></tr>
             <tr><td><?php esc_html_e('Recovery rate', 'payretry-pro'); ?></td><td><?php echo esc_html((string) $s['rate']); ?>%</td></tr>
         </table>
         <h2><?php esc_html_e('Recent recovered orders', 'payretry-pro'); ?></h2>
@@ -131,7 +131,7 @@ function wprp_render_report_page(): void
                     <tr>
                         <td><a href="<?php echo esc_url(admin_url('post.php?post=' . $o->get_id() . '&action=edit')); ?>">#<?php echo esc_html($o->get_order_number()); ?></a></td>
                         <td><?php echo esc_html($o->get_date_created() ? $o->get_date_created()->date_i18n('Y-m-d') : ''); ?></td>
-                        <td><?php echo esc_html($o->get_formatted_order_total()); ?></td>
+                        <td><?php echo wp_kses_post($o->get_formatted_order_total()); ?></td>
                     </tr>
                 <?php endforeach; ?>
             </table>

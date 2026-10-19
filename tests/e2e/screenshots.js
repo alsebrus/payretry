@@ -47,13 +47,51 @@ async function shot(page, name, opts = {}) {
   // ---- 2. Retry link with the coupon (guest, unpaid order) ----
   const failed = JSON.parse(wp([
     'eval',
-    `$o = wc_get_orders(['status' => 'failed', 'limit' => 1, 'orderby' => 'date', 'order' => 'DESC'])[0] ?? null;`
-    + ` echo $o ? json_encode(['id' => $o->get_id(), 'key' => $o->get_order_key(), 'coupon' => 'RECOVER-' . $o->get_id()]) : 'none';`,
+    // use a payable failed order; otherwise seed a clean one (zero-total
+    // shells left by test runs have no pay form)
+    `$o = null;`
+    + ` foreach (wc_get_orders(['status' => 'failed', 'limit' => 20, 'orderby' => 'date', 'order' => 'DESC']) as $cand) {`
+    + `   if ($cand->needs_payment() && (float) $cand->get_total() > 0) { $o = $cand; break; }`
+    + ` }`
+    + ` if (!$o) {`
+    + `   $pid = get_page_by_path('e2e-recovery-product', OBJECT, 'product')->ID;`
+    + `   $o = wc_create_order(['billing_email' => 'e2e@example.com', 'billing_first_name' => 'E2E', 'billing_last_name' => 'Shopper']);`
+    + `   $o->add_product(wc_get_product($pid), 1);`
+    + `   $o->calculate_totals();`
+    + `   $o->set_payment_method('wpr_test_failing');`
+    + `   $o->update_status('failed', 'Screenshot seed decline.');`
+    + `   $o->save();`
+    + ` }`
+    + ` echo json_encode(['id' => $o->get_id(), 'key' => $o->get_order_key(), 'coupon' => 'RECOVER-' . $o->get_id()]);`,
   ]).trim());
   if (failed.id) {
+    // hold the order inside WC's 10-minute guest grace so the pay form (not
+    // the email-verify screen) is what the screenshot shows, and make sure the
+    // RECOVER coupon exists and is applied (the reminder flow would have done it)
+    wp(['eval', `
+      $o = wc_get_order(${failed.id});
+      $o->set_date_created(time());
+      $code = 'RECOVER-${failed.id}';
+      if (!wc_get_coupon_id_by_code($code)) {
+        $c = new WC_Coupon();
+        $c->set_code($code);
+        $c->set_discount_type('percent');
+        $c->set_amount(10);
+        $c->save();
+      }
+      if (!$o->get_coupon_codes()) { $o->apply_coupon($code); }
+      $o->save();
+      echo 'seeded';
+    `]);
     const p2 = await pub.newPage();
     await p2.goto(`${BASE}/checkout/order-pay/${failed.id}/?pay_for_order=true&key=${failed.key}&coupon=${failed.coupon}`);
-    await p2.waitForSelector('#order_review', { timeout: 20_000 });
+    try {
+      await p2.waitForSelector('#order_review', { timeout: 20_000 });
+    } catch (e) {
+      console.log('NO FORM at', p2.url());
+      console.log('body:', (await p2.locator('body').innerText()).replace(/\s+/g, ' ').slice(0, 300));
+      throw e;
+    }
     await shot(p2, '3-retry-link-with-coupon', { fullPage: false });
   }
 
@@ -77,11 +115,25 @@ async function shot(page, name, opts = {}) {
     await shot(p3, '4-reminder-email', { fullPage: false });
   }
 
-  // ---- 4. Thank-you page of the recovered (paid) order ----
+  // ---- 4. Thank-you page of a recovered (paid, has items + RECOVER coupon) order ----
   const paid = JSON.parse(wp([
     'eval',
-    `$o = wc_get_orders(['status' => ['processing', 'completed'], 'limit' => 1, 'orderby' => 'date', 'order' => 'DESC'])[0] ?? null;`
-    + ` echo $o ? json_encode(['id' => $o->get_id(), 'key' => $o->get_order_key()]) : 'none';`,
+    `$o = null;`
+    + ` foreach (wc_get_orders(['status' => ['processing', 'completed'], 'limit' => 30, 'orderby' => 'date', 'order' => 'DESC']) as $cand) {`
+    + `   if (count($cand->get_items('line_items')) && count($cand->get_coupon_codes())) { $o = $cand; break; }`
+    + ` }`
+    + ` if (!$o) {`
+    + `   $pid = get_page_by_path('e2e-recovery-product', OBJECT, 'product')->ID;`
+    + `   $o = wc_create_order(['billing_email' => 'e2e@example.com', 'billing_first_name' => 'E2E', 'billing_last_name' => 'Shopper']);`
+    + `   $o->add_product(wc_get_product($pid), 1);`
+    + `   $o->calculate_totals();`
+    + `   $code = 'RECOVER-' . $o->get_id();`
+    + `   if (!wc_get_coupon_id_by_code($code)) { $c = new WC_Coupon(); $c->set_code($code); $c->set_discount_type('percent'); $c->set_amount(10); $c->save(); }`
+    + `   $o->apply_coupon($code);`
+    + `   $o->update_status('completed', 'Recovered via retry link.');`
+    + `   $o->save();`
+    + ` }`
+    + ` echo json_encode(['id' => $o->get_id(), 'key' => $o->get_order_key()]);`,
   ]).trim());
   if (paid.id) {
     const p4 = await pub.newPage();
