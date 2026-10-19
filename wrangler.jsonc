@@ -2,6 +2,9 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "payretry",
   "compatibility_date": "2026-10-16",
+  "routes": [
+    { "pattern": "payretry-woo.oreviq.com", "custom_domain": true }
+  ],
   "assets": {
     "directory": "./landing"
   }
