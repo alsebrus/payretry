@@ -15,7 +15,7 @@ function ok($cond, $msg)
 
 // Isolate from state accumulated by previous runs (this is a throwaway test DB).
 delete_option('wpr_mail_log');
-foreach (wc_get_orders(['status' => 'failed', 'limit' => -1]) as $stale) {
+foreach (wc_get_orders(['limit' => -1]) as $stale) {
     $stale->delete(true);
 }
 
@@ -88,5 +88,20 @@ ok(!str_contains($html, 'Upgrade to Professional'), 'no license-gated upsell');
 
 // 7. Hook wiring: cron event registered on plugin load.
 ok(wp_next_scheduled('wpr_check') !== false, 'daily wpr_check cron is scheduled');
+
+// 8. Pro add-on: a paid order with a RECOVER coupon is counted as recovered revenue.
+$paid = wc_create_order();
+$paid->set_billing_email('itest@example.com');
+$paid->set_status('completed');
+$item = new WC_Order_Item_Coupon();
+$item->set_props(['code' => 'RECOVER-PRO-TEST', 'discount' => 5, 'discount_tax' => 0]);
+$paid->add_item($item);
+$paid->set_total(42.50);
+$paid->save();
+$ps = wprp_summary(30);
+ok($ps['recovered'] >= 1, 'pro: recovered order counted');
+ok(abs($ps['revenue'] - 42.50) < 0.01, 'pro: recovered revenue is 42.50, got ' . $ps['revenue']);
+$recent = wprp_recent_recovered(30);
+ok(count($recent) >= 1, 'pro: recent list contains the order');
 
 echo "INTEGRATION OK\n";

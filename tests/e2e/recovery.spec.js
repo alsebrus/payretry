@@ -18,7 +18,7 @@ test.describe('payment recovery end-to-end', () => {
   let productId;
 
   test.beforeAll(() => {
-    const out = execFileSync(WP_ENV, [...WP_ENV_ARGS, 'run', 'cli', 'wp', 'eval-file', '/var/www/html/wp-content/plugins/wc-pay-recovery/tests/e2e/seed.php'], {
+    const out = execFileSync(WP_ENV, [...WP_ENV_ARGS, 'run', 'cli', 'wp', 'eval-file', '/var/www/html/wp-content/plugins/payretry/tests/e2e/seed.php'], {
       cwd: PROJECT_ROOT,
       encoding: 'utf8',
       maxBuffer: 10 * 1024 * 1024,

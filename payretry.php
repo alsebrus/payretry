@@ -161,6 +161,11 @@ function wpr_render_settings_page(): void
             </table>
             <?php submit_button(); ?>
         </form>
+        <p>
+            <a href="https://payretry.babkin-alexey-1805.workers.dev/" rel="noopener">
+                <?php esc_html_e('See how much revenue your reminders recover — PayRetry Pro', 'payretry'); ?> &rarr;
+            </a>
+        </p>
     </div>
     <?php
 }

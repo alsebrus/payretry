@@ -16,6 +16,7 @@ $GLOBALS['wpr_fake_orders'] = [];
 $GLOBALS['wpr_coupons'] = [];
 
 require_once dirname(__DIR__, 2) . '/payretry.php';
+require_once dirname(__DIR__, 2) . '/pro/payretry-pro/payretry-pro.php';
 
 $GLOBALS['wpr_test_options'] = [];
 function get_option($k, $d = false)
@@ -137,9 +138,31 @@ class FakeDateCreated
     }
 }
 
+class FakeCouponItem
+{
+    public function __construct(private string $code)
+    {
+    }
+    public function get_code(): string
+    {
+        return $this->code;
+    }
+}
+
 class FakeOrder
 {
     public array $meta = [];
+    public float $total = 0.0;
+    public array $coupons = [];
+
+    public function get_total(): float
+    {
+        return $this->total;
+    }
+    public function get_items($type = '')
+    {
+        return $type === 'coupon' ? array_map(fn ($c) => new FakeCouponItem($c), $this->coupons) : [];
+    }
     public function __construct(private int $createdTs, array $meta = [])
     {
         $this->meta = $meta;
