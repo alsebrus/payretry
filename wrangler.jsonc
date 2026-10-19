@@ -5,6 +5,7 @@
   "routes": [
     { "pattern": "payretry-woo.oreviq.com", "custom_domain": true }
   ],
+  "workers_dev": true,
   "assets": {
     "directory": "./landing"
   }
