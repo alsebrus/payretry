@@ -162,6 +162,7 @@ class FakeOrder
     public array $meta = [];
     public float $total = 0.0;
     public array $coupons = [];
+    public string $status = 'processing';
 
     public string $order_key = 'wc_order_testkey';
     public array $applied_coupons = [];
@@ -169,6 +170,10 @@ class FakeOrder
     public function get_total(): float
     {
         return $this->total;
+    }
+    public function get_status(): string
+    {
+        return $this->status;
     }
     public function get_order_key(): string
     {

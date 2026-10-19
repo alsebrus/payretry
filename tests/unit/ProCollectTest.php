@@ -7,64 +7,64 @@ class ProCollectTest extends TestCase
 {
     private function failed(int $stage): FakeOrder
     {
-        return new FakeOrder(time(), ['_wpr_start' => time() - 86400, '_wpr_stage' => $stage]);
+        $o = new FakeOrder(time(), ['_wpr_start' => time() - 86400, '_wpr_stage' => $stage]);
+        $o->status = 'failed';
+        return $o;
     }
 
-    private function paid(array $coupons, float $total, int $stage = 0): FakeOrder
+    /** A paid order; $wasFailed marks one that was failed before (keeps _wpr_start). */
+    private function paid(float $total, bool $wasFailed = false): FakeOrder
     {
-        // a recovered order keeps the _wpr_start anchor of its failure
-        $o = new FakeOrder(time(), ['_wpr_stage' => $stage, '_wpr_start' => $stage > 0 ? time() - 3600 : 0]);
-        $o->coupons = $coupons;
-        $o->total = $total;
-        return $o;
+        return new FakeOrder(time(), ['_wpr_start' => $wasFailed ? time() - 3600 : 0]);
     }
 
     public function testEmptyInput(): void
     {
         $this->assertSame(
-            ['failed' => 0, 'recovered' => 0, 'revenue' => 0.0, 'rate' => 0.0],
+            ['failed' => 0, 'recovered' => 0, 'still_unpaid' => 0, 'revenue' => 0.0, 'rate' => 0.0],
             wprp_collect([], [])
         );
     }
 
-    public function testFailedCountsPaymentsAnchoredByFailure(): void
+    public function testFailedAnchorCountsImmediately(): void
     {
         // _wpr_start is written the moment a payment fails, no email needed
         $s = wprp_collect([$this->failed(0), $this->failed(1), $this->failed(7)], []);
         $this->assertSame(3, $s['failed'], 'every anchored failure counts, even before any reminder');
+        $this->assertSame(3, $s['still_unpaid'], 'none of them was paid yet');
         $this->assertSame(0.0, $s['rate']);
     }
 
-    public function testRecoveredCountsOnlyRecoverCoupons(): void
+    public function testRecoveredWithoutCoupon(): void
     {
-        $r1 = $this->paid(['RECOVER-42'], 79.0, 3); // recovered: reminded before the coupon
-        $r2 = $this->paid(['recover-7'], 10.0, 3);  // case-insensitive
-        $s = wprp_collect(
-            [$this->failed(3), $r1, $r2],           // summary passes every period order here
-            [$r1, $r2, $this->paid(['SAVE10'], 50.0), $this->paid([], 99.0)]
-        );
-        $this->assertSame(2, $s['recovered']);
-        $this->assertSame(89.0, $s['revenue']);
-        $this->assertSame(66.7, $s['rate'], '2 recovered / 3 reminded (1 failed + 2 recovered)');
+        // the shopper paid from the first reminder (no discount in that email)
+        $o = new FakeOrder(time(), ['_wpr_start' => time() - 3600, '_wpr_stage' => 1]);
+        $o->total = 10.0;
+        $s = wprp_collect([$o], [$o]);
+        $this->assertSame(1, $s['failed'], 'was failed');
+        $this->assertSame(1, $s['recovered'], 'is paid now — coupon or not');
+        $this->assertSame(0, $s['still_unpaid'], 'nothing left unpaid');
+        $this->assertSame(10.0, $s['revenue'], 'full price, no coupon was involved');
+        $this->assertSame(100.0, $s['rate']);
     }
 
-    public function testOpenFailedAfterRecoveryGivesHalfRate(): void
+    public function testMixedState(): void
     {
-        // scenario: one payment recovered (paid now, keeps _wpr_stage), one failed is still open
-        $recovered = $this->paid(['recover-196'], 9.50, 3);
-        $s = wprp_collect(
-            [$this->failed(7), $recovered],
-            [$recovered, $this->paid([], 10.0)]
-        );
-        $this->assertSame(2, $s['failed'], 'the open failed and the recovered one both count');
+        $done = new FakeOrder(time(), ['_wpr_start' => time() - 3600, '_wpr_stage' => 3]);
+        $open = $this->failed(7);
+        $s = wprp_collect([$done, $open], [$done]);
+        $this->assertSame(2, $s['failed']);
         $this->assertSame(1, $s['recovered']);
-        $this->assertSame(50.0, $s['rate'], '1 recovered of 2 reminded');
+        $this->assertSame(1, $s['still_unpaid'], 'the open failed order stays unpaid');
+        $this->assertSame(50.0, $s['rate'], '1 recovered of 2 failed');
     }
 
-    public function testSingleCouponCountedOncePerOrder(): void
+    public function testFirstTryPaymentNeverCounts(): void
     {
-        $s = wprp_collect([], [$this->paid(['RECOVER-1', 'RECOVER-2'], 30.0)]);
-        $this->assertSame(1, $s['recovered'], 'an order with two recover coupons counts once');
-        $this->assertSame(30.0, $s['revenue']);
+        $paid = $this->paid(10.0);
+        $s = wprp_collect([$paid], [$paid]);
+        $this->assertSame(0, $s['failed'], 'no failure anchor on a first-try payment');
+        $this->assertSame(0, $s['recovered']);
+        $this->assertSame(0.0, $s['rate']);
     }
 }
