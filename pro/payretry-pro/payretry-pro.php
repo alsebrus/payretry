@@ -19,6 +19,29 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
+// Freemius SDK (Pro build only: guarded so the add-on stays inert in dev
+// environments and the free WordPress.org build ships no SDK at all).
+if (!isset($pp_fs) && file_exists(dirname(__FILE__) . '/vendor/freemius/start.php')) {
+    require_once dirname(__FILE__) . '/vendor/freemius/start.php';
+    $pp_fs = fs_dynamic_init(array(
+        'id'                => '42120',
+        'slug'              => 'payretry-pro',
+        'type'              => 'plugin',
+        'public_key'        => 'pk_b2bd8df65e9e5a06e30596e24b409',
+        'is_premium'        => true,
+        'is_premium_only'   => true,
+        'has_addons'        => false,
+        'has_paid_plans'    => true,
+        'is_org_compliant'  => true,
+        'menu'              => array(
+            'slug'     => 'wpr-pro',
+            'account'  => false,
+            'network'  => false,
+            'priority' => 57,
+        ),
+    ));
+}
+
 /**
  * Pure analysis: classify orders into reminder/recovery metrics.
  *
