@@ -161,11 +161,13 @@ function wpr_render_settings_page(): void
             </table>
             <?php submit_button(); ?>
         </form>
-        <p>
-            <a href="https://payretry-woo.oreviq.com/#pricing" rel="noopener">
-                <?php esc_html_e('See how much revenue your reminders recover — PayRetry Pro', 'payretry'); ?> &rarr;
-            </a>
-        </p>
+        <?php if (!function_exists('wprp_summary')) : // hide the upsell once the Pro add-on is active ?>
+            <p>
+                <a href="https://payretry-woo.oreviq.com/#pricing" rel="noopener">
+                    <?php esc_html_e('See how much revenue your reminders recover — PayRetry Pro', 'payretry'); ?> &rarr;
+                </a>
+            </p>
+        <?php endif; ?>
     </div>
     <?php
 }

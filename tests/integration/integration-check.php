@@ -130,7 +130,13 @@ wp_set_current_user(1); // admin
 wpr_render_settings_page();
 $form_html = ob_get_clean();
 ok(str_contains($form_html, 'name="_wpnonce"'), 'settings form carries _wpnonce');
-ok((bool) preg_match('/name=[\'\"]option_page[\'\"]/', $form_html), 'settings form posts to options.php option_page');
+ok((bool) preg_match('/name=[\'\""]option_page[\'\""]/', $form_html), 'settings form posts to options.php option_page');
+
+// 12. Upsell link is hidden while the Pro add-on is active.
+// (The reverse — link reappearing after deactivation — needs a fresh request:
+// PHP keeps wprp_summary defined for the rest of this process, so it can only
+// be exercised live, not in-process. The branch is a plain function_exists().)
+ok(!str_contains($form_html, 'PayRetry Pro'), 'upsell link hidden while Pro add-on is active');
 
 // 11. Security: XSS in the stored template is neutralised end-to-end
 //     (real WP sanitize_textarea_field on save + esc_textarea on render).
