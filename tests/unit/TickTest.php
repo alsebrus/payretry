@@ -58,6 +58,7 @@ class TickTest extends TestCase
         $this->assertSame(7, $order->meta['_wpr_stage']);
         $this->assertSame(10, $GLOBALS['wpr_coupons']['RECOVER-1']['amount']);
         $this->assertSame('percent', $GLOBALS['wpr_coupons']['RECOVER-1']['type']);
+        $this->assertSame(1, $GLOBALS['wpr_coupons']['RECOVER-1']['usage_limit'], 'recovery coupons are single-use');
     }
 
     public function testExistingCouponIsUpdatedNotDuplicated(): void

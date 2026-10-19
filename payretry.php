@@ -102,6 +102,7 @@ function wpr_tick(): void
                 $coupon->set_code($code);
                 $coupon->set_discount_type('percent');
                 $coupon->set_amount($discount);
+                $coupon->set_usage_limit(1); // one order, one redemption
                 $coupon->save();
                 $link = add_query_arg('coupon', rawurlencode($code), $link);
             }

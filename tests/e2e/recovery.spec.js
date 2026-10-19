@@ -73,11 +73,17 @@ test.describe('payment recovery end-to-end', () => {
     expect(mails[2].body).toContain(`coupon=RECOVER-${order.id}`);
     expect(mails[2].body).toContain('/checkout/order-pay/');
 
-    // 6. The coupon really exists in the store, at 10%.
-    const couponId = wp(['eval', `echo wc_get_coupon_id_by_code('RECOVER-${order.id}');`]).trim();
-    expect(Number(couponId)).toBeGreaterThan(0);
-    const amount = wp(['eval', `echo (new WC_Coupon('RECOVER-${order.id}'))->get_amount();`]).trim();
-    expect(Number(amount)).toBe(10);
+    // 6. The coupon really exists in the store: 10% and single-use.
+    //    (Read by numeric id: a chained `new WC_Coupon(code)->get_amount()`
+    //     returns '' before other getters wake the object — a WooCommerce quirk.)
+    const coupon = JSON.parse(wp(['eval',
+      `$id = wc_get_coupon_id_by_code('RECOVER-${order.id}');`
+      + ` $c = $id ? new WC_Coupon((int) $id) : null;`
+      + ` echo json_encode(['id' => (int) $id, 'amount' => $c ? (float) $c->get_amount() : -1, 'limit' => $c ? (int) $c->get_usage_limit() : -1]);`,
+    ]).trim());
+    expect(coupon.id).toBeGreaterThan(0);
+    expect(coupon.amount).toBe(10);
+    expect(coupon.limit).toBe(1); // single-use: bound to this order only
 
     // 7. A fourth tick stays silent.
     wp(['eval', 'wpr_tick();']);

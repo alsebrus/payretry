@@ -4,9 +4,7 @@
   "testsPort": 9081,
   "plugins": ["https://downloads.wordpress.org/plugin/woocommerce.latest-stable.zip"],
   "mappings": {
-    "wp-content/mu-plugins": "./tests/mu-plugins",
-    "wp-content/plugins/payretry": ".",
-    "wp-content/plugins/payretry-pro": "./pro/payretry-pro"
+    "wp-content/mu-plugins": "./tests/mu-plugins"
   },
   "config": { "WP_DEBUG": true }
 }

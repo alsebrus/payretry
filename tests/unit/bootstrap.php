@@ -115,9 +115,14 @@ class WC_Coupon
     {
         $this->type = $t;
     }
+    public $usage_limit;
     public function set_amount($a)
     {
         $this->amount = $a;
+    }
+    public function set_usage_limit($u)
+    {
+        $this->usage_limit = $u;
     }
     public function save()
     {
@@ -125,6 +130,7 @@ class WC_Coupon
             'id' => $GLOBALS['wpr_coupons'][$this->code]['id'] ?? count($GLOBALS['wpr_coupons']) + 1,
             'type' => $this->type,
             'amount' => $this->amount,
+            'usage_limit' => $this->usage_limit,
         ];
     }
 }

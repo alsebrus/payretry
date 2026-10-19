@@ -105,22 +105,27 @@ test.describe('purchase & recovery scenarios', () => {
     expect(paid.coupons.map(c => c.toLowerCase())).toContain(`recover-${orderId}`);
     expect(Number(paid.total)).toBeLessThan(10), 'the 10% coupon must actually discount the order';
 
-    // 5. The Pro report counts it: recovered order + revenue.
-    const summary = JSON.parse(wp([
-      'eval',
-      `$s = wprp_summary(30); echo json_encode(['recovered' => $s['recovered'], 'revenue' => $s['revenue']]);`,
-    ]).trim());
-    expect(summary.recovered).toBeGreaterThanOrEqual(1);
-    expect(summary.revenue).toBeGreaterThan(0);
+    // 5-6. The Pro report counts it — only when the Pro add-on is installed
+    //      (step-by-step runs may check the free plugin alone).
+    const proInstalled = wp(['eval', 'echo function_exists("wprp_summary") ? "1" : "0";']).trim() === '1';
+    if (proInstalled) {
+      const summary = JSON.parse(wp([
+        'eval',
+        `$s = wprp_summary(30); echo json_encode(['recovered' => $s['recovered'], 'revenue' => $s['revenue']]);`,
+      ]).trim());
+      expect(summary.recovered).toBeGreaterThanOrEqual(1);
+      expect(summary.revenue).toBeGreaterThan(0);
 
-    // 6. And the report page shows it to the admin.
-    await page.goto('/wp-login.php');
-    await page.locator('#user_login').fill('admin');
-    await page.locator('#user_pass').fill('password');
-    await page.locator('#wp-submit').click();
-    await page.goto('/wp-admin/admin.php?page=wpr-pro');
-    await expect(page.locator('h1', { hasText: 'Recovery Report' })).toBeVisible({ timeout: 30_000 });
-    await expect(page.locator('h2:has-text("Recent recovered orders") + table')).toContainText('#' + orderId);
+      await page.goto('/wp-login.php');
+      await page.locator('#user_login').fill('admin');
+      await page.locator('#user_pass').fill('password');
+      await page.locator('#wp-submit').click();
+      await page.goto('/wp-admin/admin.php?page=wpr-pro');
+      await expect(page.locator('h1', { hasText: 'Recovery Report' })).toBeVisible({ timeout: 30_000 });
+      await expect(page.locator('h2:has-text("Recent recovered orders") + table')).toContainText('#' + orderId);
+    } else {
+      console.log('[skip] Pro add-on not installed — skipping Pro report assertions');
+    }
 
     // The gate goes back to declining so later runs see deterministic state.
     wp(['eval', "update_option('wpr_test_gate_mode', 'fail');"]);

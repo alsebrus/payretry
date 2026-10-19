@@ -6,6 +6,8 @@
 /.wrangler
 /svn-assets
 /landing
+/pro
+/docs
 /wrangler.jsonc
 /.wp-env.json
 /.phpunit.result.cache
