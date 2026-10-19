@@ -162,7 +162,7 @@ function wpr_render_settings_page(): void
             <?php submit_button(); ?>
         </form>
         <p>
-            <a href="https://payretry.babkin-alexey-1805.workers.dev/" rel="noopener">
+            <a href="https://payretry-woo.oreviq.com/#pricing" rel="noopener">
                 <?php esc_html_e('See how much revenue your reminders recover — PayRetry Pro', 'payretry'); ?> &rarr;
             </a>
         </p>

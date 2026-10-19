@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: PayRetry Pro
- * Plugin URI:  https://payretry.babkin-alexey-1805.workers.dev/
+ * Plugin URI:  https://payretry-woo.oreviq.com/
  * Description: Revenue recovery reports for PayRetry — how many failed payments came back and how much money your reminders earned. Add-on for PayRetry.
  * Version:     0.1.0
  * Author:      Alexey Babkin <babkin.alexey.1805@gmail.com>
