@@ -104,4 +104,46 @@ ok(abs($ps['revenue'] - 42.50) < 0.01, 'pro: recovered revenue is 42.50, got ' .
 $recent = wprp_recent_recovered(30);
 ok(count($recent) >= 1, 'pro: recent list contains the order');
 
+// 9. Security: settings menu is gated by manage_woocommerce (not read/manage_options).
+wp_set_current_user(1); // add_submenu_page skips pages the current user may not see
+global $menu, $submenu;
+// wp-cli has no admin bootstrap: seed the globals the way wp-admin does
+if (!is_array($menu) || !$menu) {
+    $menu = [56 => ['WooCommerce', 'manage_woocommerce', 'woocommerce', 'WooCommerce']];
+}
+if (!is_array($submenu) || !isset($submenu['woocommerce'])) {
+    $submenu = ['woocommerce' => []];
+}
+do_action('admin_menu');
+$wpr_cap = null;
+foreach ($submenu['woocommerce'] ?? [] as $item) {
+    if (in_array('wpr', (array) $item, true)) {
+        $wpr_cap = $item[1];
+    }
+}
+ok($wpr_cap === 'manage_woocommerce', 'admin menu requires manage_woocommerce, got: ' . var_export($wpr_cap, true));
+
+// 10. Security: the settings form renders the WP options nonce (no-CSRF).
+$_SERVER['REQUEST_METHOD'] = 'GET';
+ob_start();
+wp_set_current_user(1); // admin
+wpr_render_settings_page();
+$form_html = ob_get_clean();
+ok(str_contains($form_html, 'name="_wpnonce"'), 'settings form carries _wpnonce');
+ok((bool) preg_match('/name=[\'\"]option_page[\'\"]/', $form_html), 'settings form posts to options.php option_page');
+
+// 11. Security: XSS in the stored template is neutralised end-to-end
+//     (real WP sanitize_textarea_field on save + esc_textarea on render).
+$clean = wpr_sanitize_settings([
+    'template' => "<script>alert(1)</script>Retry: {link}",
+]);
+ok(!str_contains($clean['template'], '<script'), 'sanitizer strips script tags on save');
+update_option('wpr_settings', array_merge(get_option('wpr_settings', []), $clean));
+ob_start();
+wpr_render_settings_page();
+$red = ob_get_clean();
+ok(!str_contains($red, '<script>alert'), 'rendered form contains no raw script tag');
+ok(str_contains($red, '&lt;script') || !str_contains($red, '<script'), 'any leftover markup is entity-escaped');
+delete_option('wpr_settings'); // hand control back to the defaults used by the rest of the suite
+
 echo "INTEGRATION OK\n";

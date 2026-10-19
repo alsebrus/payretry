@@ -24,7 +24,14 @@ add_action('plugins_loaded', function () {
         public function process_payment($order_id)
         {
             $order = wc_get_order($order_id);
-            // WC only flips the order to "failed" for an uncaught exception;
+            if (get_option('wpr_test_gate_mode', 'fail') === 'success') {
+                $order->payment_complete('TEST-APPROVED-' . $order_id);
+                return ['result' => 'success', 'redirect' => $order->get_checkout_order_received_url()];
+            }
+                // Real gateways surface the decline themselves: the order-pay
+            // handler renders no notice for a plain 'failure' result.
+            wc_add_notice('Your card was declined by the test gateway. Please try again.', 'error');
+        // WC only flips the order to "failed" for an uncaught exception;
             // a plain failure array leaves it pending, so do it explicitly.
             $order->update_status('failed', 'Test gateway declined the payment.');
             do_action('woocommerce_payment_failed', $order);

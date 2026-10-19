@@ -40,6 +40,16 @@ if (!$product) {
     update_post_meta($pid, '_visibility', 'visible');
 }
 
+// A second, always-approving gateway so E2E can model a successful purchase.
+update_option('woocommerce_cod_settings', [
+    'enabled'       => 'yes',
+    'title'         => 'Cash on delivery',
+    'description'   => 'Pay when you receive the order.',
+    'instructions'  => '',
+]);
+// Deterministic test-gateway behaviour for every run: start by declining.
+update_option('wpr_test_gate_mode', 'fail');
+
 // Reset state from previous runs.
 delete_option('wpr_mail_log');
 foreach (wc_get_orders(['billing_email' => 'e2e@example.com', 'limit' => -1]) as $o) {

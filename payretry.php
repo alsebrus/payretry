@@ -193,6 +193,53 @@ if (!wp_next_scheduled('wpr_check')) {
     wp_schedule_event(time() + HOUR_IN_SECONDS, 'daily', 'wpr_check');
 }
 
+/**
+ * Apply the reminder coupon when a customer opens the retry link.
+ * WooCommerce ignores ?coupon= on order-pay pages, so without this the
+ * discount promised in the email would silently never happen.
+ *
+ * @param object $order order being paid (must expose get_order_key()/apply_coupon()).
+ * @param string $code   coupon code from the retry link.
+ * @param string $key    order key from the retry link.
+ * @return bool whether the coupon was applied by this call.
+ */
+function wpr_apply_recover_coupon($order, $code, $key): bool
+{
+    if (!is_object($order) || 'RECOVER-' . $order->get_id() !== (string) $code) {
+        return false;
+    }
+    if (!is_string($key) || '' === $key || !hash_equals((string) $order->get_order_key(), $key)) {
+        return false; // only the owner of the order may apply its coupon
+    }
+    if (in_array(strtolower((string) $code), array_map('strtolower', $order->get_coupon_codes()), true)) {
+        return false;
+    }
+    if (true !== $order->apply_coupon($code)) {
+        return false;
+    }
+    $order->save();
+    return true;
+}
+
+add_action('template_redirect', function () {
+    if (!isset($_GET['coupon'], $_GET['pay_for_order'], $_GET['key']) || 'true' !== $_GET['pay_for_order']) {
+        return;
+    }
+    $order_id = absint(get_query_var('order-pay'));
+    if (!$order_id || !function_exists('wc_get_order')) {
+        return;
+    }
+    $order = wc_get_order($order_id);
+    if (!$order) {
+        return;
+    }
+    wpr_apply_recover_coupon(
+        $order,
+        wc_clean(wp_unslash($_GET['coupon'])),
+        wc_clean(wp_unslash($_GET['key']))
+    );
+});
+
 add_action('admin_menu', function () {
     add_submenu_page('woocommerce', __('Payment Recovery', 'payretry'), __('Payment Recovery', 'payretry'), 'manage_woocommerce', 'wpr', 'wpr_render_settings_page');
 });

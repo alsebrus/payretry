@@ -29,7 +29,9 @@ function wp_parse_args($args, $defaults)
 }
 function sanitize_textarea_field($s)
 {
-    return trim($s);
+    // mirrors WP core _sanitize_text_fields($str, true): tags are stripped
+    $s = trim(preg_replace('/<[^>]*>/', '', (string) $s));
+    return $s;
 }
 function __($s, $domain = null)
 {
@@ -155,9 +157,28 @@ class FakeOrder
     public float $total = 0.0;
     public array $coupons = [];
 
+    public string $order_key = 'wc_order_testkey';
+    public array $applied_coupons = [];
+
     public function get_total(): float
     {
         return $this->total;
+    }
+    public function get_order_key(): string
+    {
+        return $this->order_key;
+    }
+    public function get_coupon_codes(): array
+    {
+        return $this->applied_coupons;
+    }
+    public function apply_coupon($code)
+    {
+        if (str_starts_with((string) $code, 'RECOVER-')) {
+            $this->applied_coupons[] = $code;
+            return true;
+        }
+        return new WP_Error('invalid_coupon', 'invalid');
     }
     public function get_items($type = '')
     {
