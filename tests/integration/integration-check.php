@@ -97,6 +97,7 @@ $item = new WC_Order_Item_Coupon();
 $item->set_props(['code' => 'RECOVER-PRO-TEST', 'discount' => 5, 'discount_tax' => 0]);
 $paid->add_item($item);
 $paid->set_total(42.50);
+$paid->update_meta_data('_wpr_stage', 3); // reminders were sent before the coupon
 $paid->save();
 $ps = wprp_summary(30);
 ok($ps['recovered'] >= 1, 'pro: recovered order counted');
@@ -153,3 +154,8 @@ ok(str_contains($red, '&lt;script') || !str_contains($red, '<script'), 'any left
 delete_option('wpr_settings'); // hand control back to the defaults used by the rest of the suite
 
 echo "INTEGRATION OK\n";
+
+// Same isolation as above, so the shared wp-env stand stays clean after the run.
+foreach (wc_get_orders(['limit' => -1]) as $stale) {
+    $stale->delete(true);
+}
