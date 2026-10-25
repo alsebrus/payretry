@@ -4,7 +4,7 @@ Tags: woocommerce, payment recovery, revenue reports, failed payments
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 8.0
-Stable tag: 0.1.2
+Stable tag: 0.1.3
 License: GPLv2 or later
 
 Revenue recovery reports for PayRetry: recovered orders, recovered revenue and recovery rate for your failed-payment reminders.
@@ -28,6 +28,9 @@ Requires the free PayRetry plugin to be installed and active.
 1. Open WooCommerce → PayRetry Pro.
 
 == Changelog ==
+
+= 0.1.3 =
+* Updated the Freemius SDK to 2.13.5.
 
 = 0.1.2 =
 * Renamed all internal functions to the payretry_pro_ prefix (plugin review: the previous wprp prefix was too short).
