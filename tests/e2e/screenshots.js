@@ -58,7 +58,7 @@ async function shot(page, name, opts = {}) {
     + `   $o = wc_create_order(['billing_email' => 'e2e@example.com', 'billing_first_name' => 'E2E', 'billing_last_name' => 'Shopper']);`
     + `   $o->add_product(wc_get_product($pid), 1);`
     + `   $o->calculate_totals();`
-    + `   $o->set_payment_method('wpr_test_failing');`
+    + `   $o->set_payment_method('payretry_test_failing');`
     + `   $o->update_status('failed', 'Screenshot seed decline.');`
     + `   $o->save();`
     + ` }`
@@ -98,7 +98,7 @@ async function shot(page, name, opts = {}) {
   // ---- 3. Reminder email exactly as the shopper receives it ----
   const mails = JSON.parse(wp([
     'eval',
-    `$log = array_values(get_option('wpr_mail_log', [])); echo json_encode($log[count($log) - 1] ?? null);`,
+    `$log = array_values(get_option('payretry_mail_log', [])); echo json_encode($log[count($log) - 1] ?? null);`,
   ]).trim());
   if (mails) {
     const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -150,12 +150,12 @@ async function shot(page, name, opts = {}) {
   await p5.locator('#user_pass').fill('password');
   await p5.locator('#wp-submit').click();
   await p5.waitForURL(/wp-admin/);
-  await p5.goto(`${BASE}/wp-admin/admin.php?page=wpr`);
+  await p5.goto(`${BASE}/wp-admin/admin.php?page=payretry`);
   await p5.waitForSelector('form');
   await shot(p5, '6-admin-settings');
 
   // ---- 6. Admin: Pro recovery report ----
-  await p5.goto(`${BASE}/wp-admin/admin.php?page=wpr-pro`);
+  await p5.goto(`${BASE}/wp-admin/admin.php?page=payretry-pro`);
   await p5.waitForSelector('table');
   await shot(p5, '7-admin-pro-report');
 

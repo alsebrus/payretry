@@ -7,7 +7,7 @@ class ScheduleTest extends TestCase
 {
     public function testScheduleIsThreeEscalatingReminders(): void
     {
-        $s = wpr_schedule();
+        $s = payretry_schedule();
         $this->assertCount(3, $s);
         $days = array_keys($s);
         $discounts = array_column($s, 1);
@@ -20,8 +20,8 @@ class ScheduleTest extends TestCase
 
     public function testHooksRegisteredOnLoad(): void
     {
-        $this->assertContains('woocommerce_payment_failed', $GLOBALS['wpr_registered_actions']);
-        $this->assertContains('wpr_check', $GLOBALS['wpr_registered_actions']);
-        $this->assertSame('daily', $GLOBALS['wpr_scheduled'][1] ?? null, 'daily cron scheduled');
+        $this->assertContains('woocommerce_payment_failed', $GLOBALS['payretry_registered_actions']);
+        $this->assertContains('payretry_check', $GLOBALS['payretry_registered_actions']);
+        $this->assertSame('daily', $GLOBALS['payretry_scheduled'][1] ?? null, 'daily cron scheduled');
     }
 }

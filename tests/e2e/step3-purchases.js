@@ -58,7 +58,7 @@ async function fillBilling(page) {
   await page.goto(`${BASE}/?add-to-cart=${productId}`);
   await page.goto(`${BASE}/checkout/`);
   await fillBilling(page);
-  await page.locator('#payment_method_wpr_test_failing').check();
+  await page.locator('#payment_method_payretry_test_failing').check();
   await page.locator('#place_order').click();
   const declineNotice = await page.getByText('declined by the test gateway').first()
     .waitFor({ timeout: 30000 }).then(() => true).catch(() => false);
@@ -66,7 +66,7 @@ async function fillBilling(page) {
     decline_notice_shown: declineNotice,
     order: JSON.parse(wpEval(
       `$o = wc_get_orders(['billing_email' => 'step@example.com', 'status' => 'failed', 'limit' => 1, 'orderby' => 'date', 'order' => 'DESC'])[0] ?? null;`
-      + ` echo $o ? json_encode(['id' => $o->get_id(), 'status' => $o->get_status(), 'total' => $o->get_total(), 'stage' => $o->get_meta('_wpr_stage')]) : 'none';`
+      + ` echo $o ? json_encode(['id' => $o->get_id(), 'status' => $o->get_status(), 'total' => $o->get_total(), 'stage' => $o->get_meta('_payretry_stage')]) : 'none';`
     ).trim()),
   };
   await page.close();

@@ -30,6 +30,7 @@ Requires the free PayRetry plugin to be installed and active.
 == Changelog ==
 
 = 0.1.2 =
+* Renamed all internal functions to the payretry_pro_ prefix (plugin review: the previous wprp prefix was too short).
 * Recovery is detected by the payment failure itself (was failed, is paid now) instead of the RECOVER coupon — retrying from the first, coupon-less reminder counts too.
 * New report rows: "Failed payments (period)" and "Still unpaid (failed)"; the recent list shows every recovered order.
 * Recovery rate divides by all failed payments of the period, not by the currently-failed snapshot.

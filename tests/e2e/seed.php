@@ -48,10 +48,10 @@ update_option('woocommerce_cod_settings', [
     'instructions'  => '',
 ]);
 // Deterministic test-gateway behaviour for every run: start by declining.
-update_option('wpr_test_gate_mode', 'fail');
+update_option('payretry_test_gate_mode', 'fail');
 
 // Reset state from previous runs.
-delete_option('wpr_mail_log');
+delete_option('payretry_mail_log');
 foreach (wc_get_orders(['billing_email' => 'e2e@example.com', 'limit' => -1]) as $o) {
     $o->delete(true);
 }

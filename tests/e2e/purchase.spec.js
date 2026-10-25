@@ -60,7 +60,7 @@ test.describe('purchase & recovery scenarios', () => {
     expect(['processing', 'completed', 'on-hold']).toContain(r.paid);
 
     // The cron must not mail a healthy order.
-    const mails = wp(['eval', 'wpr_tick(); echo count(get_option("wpr_mail_log", []));']).trim();
+    const mails = wp(['eval', 'payretry_tick(); echo count(get_option("payretry_mail_log", []));']).trim();
     expect(Number(mails)).toBe(0);
   });
 
@@ -69,7 +69,7 @@ test.describe('purchase & recovery scenarios', () => {
     await page.goto(`/?add-to-cart=${productId}`);
     await page.goto('/checkout/');
     await fillBilling(page);
-    await page.locator('#payment_method_wpr_test_failing').check();
+    await page.locator('#payment_method_payretry_test_failing').check();
     await page.locator('#place_order').click();
     await expect(page.locator('.woocommerce-NoticeGroup').first()).toBeVisible({ timeout: 30_000 });
 
@@ -79,19 +79,19 @@ test.describe('purchase & recovery scenarios', () => {
     ]).trim());
 
     // 2. Fast-forward so the day-7 reminder (with coupon) is due, then send it.
-    wp(['eval', `$o = wc_get_order(${orderId}); $o->update_meta_data('_wpr_start', time() - 8 * DAY_IN_SECONDS); $o->update_meta_data('_wpr_stage', 0); $o->save(); wpr_tick(); wpr_tick(); wpr_tick();`]);
+    wp(['eval', `$o = wc_get_order(${orderId}); $o->update_meta_data('_payretry_start', time() - 8 * DAY_IN_SECONDS); $o->update_meta_data('_payretry_stage', 0); $o->save(); payretry_tick(); payretry_tick(); payretry_tick();`]);
 
     const mail = JSON.parse(wp([
       'eval',
-      `$log = array_values(array_filter(get_option('wpr_mail_log', []), fn($m) => str_starts_with($m['subject'], 'Order #' . ${orderId} . ':'))); echo json_encode($log[count($log) - 1]);`,
+      `$log = array_values(array_filter(get_option('payretry_mail_log', []), fn($m) => str_starts_with($m['subject'], 'Order #' . ${orderId} . ':'))); echo json_encode($log[count($log) - 1]);`,
     ]).trim());
     const retryUrl = mail.body.match(/https?:\/\/\S*\/checkout\/order-pay\/\S+/)[0];
     expect(retryUrl).toContain('coupon=RECOVER-');
 
     // 3. The shopper retries — this time the gateway approves.
-    wp(['eval', "update_option('wpr_test_gate_mode', 'success');"]);
+    wp(['eval', "update_option('payretry_test_gate_mode', 'success');"]);
     await page.goto(retryUrl.replace(/&amp;/g, '&'));
-    await page.locator('#payment_method_wpr_test_failing').check();
+    await page.locator('#payment_method_payretry_test_failing').check();
     await page.locator('form button[type="submit"], button[type="submit"]').first().click();
     await expect(page.locator('.woocommerce-order-received, .woocommerce-thankyou-order-received').first()).toBeVisible({ timeout: 30_000 });
 
@@ -107,11 +107,11 @@ test.describe('purchase & recovery scenarios', () => {
 
     // 5-6. The Pro report counts it — only when the Pro add-on is installed
     //      (step-by-step runs may check the free plugin alone).
-    const proInstalled = wp(['eval', 'echo function_exists("wprp_summary") ? "1" : "0";']).trim() === '1';
+    const proInstalled = wp(['eval', 'echo function_exists("payretry_pro_summary") ? "1" : "0";']).trim() === '1';
     if (proInstalled) {
       const summary = JSON.parse(wp([
         'eval',
-        `$s = wprp_summary(30); echo json_encode(['recovered' => $s['recovered'], 'revenue' => $s['revenue']]);`,
+        `$s = payretry_pro_summary(30); echo json_encode(['recovered' => $s['recovered'], 'revenue' => $s['revenue']]);`,
       ]).trim());
       expect(summary.recovered).toBeGreaterThanOrEqual(1);
       expect(summary.revenue).toBeGreaterThan(0);
@@ -120,7 +120,7 @@ test.describe('purchase & recovery scenarios', () => {
       await page.locator('#user_login').fill('admin');
       await page.locator('#user_pass').fill('password');
       await page.locator('#wp-submit').click();
-      await page.goto('/wp-admin/admin.php?page=wpr-pro');
+      await page.goto('/wp-admin/admin.php?page=payretry-pro');
       await expect(page.locator('h1', { hasText: 'Recovery Report' })).toBeVisible({ timeout: 30_000 });
       await expect(page.locator('h2:has-text("Recent recovered orders") + table')).toContainText('#' + orderId);
     } else {
@@ -128,7 +128,7 @@ test.describe('purchase & recovery scenarios', () => {
     }
 
     // The gate goes back to declining so later runs see deterministic state.
-    wp(['eval', "update_option('wpr_test_gate_mode', 'fail');"]);
+    wp(['eval', "update_option('payretry_test_gate_mode', 'fail');"]);
   });
 
   test('a retry that declines again stays failed with no extra reminders', async ({ page }) => {
@@ -136,7 +136,7 @@ test.describe('purchase & recovery scenarios', () => {
     await page.goto(`/?add-to-cart=${productId}`);
     await page.goto('/checkout/');
     await fillBilling(page);
-    await page.locator('#payment_method_wpr_test_failing').check();
+    await page.locator('#payment_method_payretry_test_failing').check();
     await page.locator('#place_order').click();
     await expect(page.locator('.woocommerce-NoticeGroup').first()).toBeVisible({ timeout: 30_000 });
 
@@ -144,18 +144,18 @@ test.describe('purchase & recovery scenarios', () => {
       'eval',
       `echo wc_get_orders(['status' => 'failed', 'billing_email' => 'e2e@example.com', 'limit' => 1])[0]->get_id();`,
     ]).trim());
-    wp(['eval', `$o = wc_get_order(${orderId}); $o->update_meta_data('_wpr_start', time() - 8 * DAY_IN_SECONDS); $o->update_meta_data('_wpr_stage', 0); $o->save(); wpr_tick(); wpr_tick(); wpr_tick();`]);
-    const before = Number(wp(['eval', `$log = array_filter(get_option('wpr_mail_log', []), fn($m) => str_starts_with($m['subject'], 'Order #' . ${orderId} . ':')); echo count($log);`]).trim());
+    wp(['eval', `$o = wc_get_order(${orderId}); $o->update_meta_data('_payretry_start', time() - 8 * DAY_IN_SECONDS); $o->update_meta_data('_payretry_stage', 0); $o->save(); payretry_tick(); payretry_tick(); payretry_tick();`]);
+    const before = Number(wp(['eval', `$log = array_filter(get_option('payretry_mail_log', []), fn($m) => str_starts_with($m['subject'], 'Order #' . ${orderId} . ':')); echo count($log);`]).trim());
     expect(before).toBe(3);
 
     // 2. The retry attempt is declined again (gate stays in fail mode).
     const mail = JSON.parse(wp([
       'eval',
-      `$log = array_values(array_filter(get_option('wpr_mail_log', []), fn($m) => str_starts_with($m['subject'], 'Order #' . ${orderId} . ':'))); echo json_encode($log[count($log) - 1]);`,
+      `$log = array_values(array_filter(get_option('payretry_mail_log', []), fn($m) => str_starts_with($m['subject'], 'Order #' . ${orderId} . ':'))); echo json_encode($log[count($log) - 1]);`,
     ]).trim());
     const retryUrl = mail.body.match(/https?:\/\/\S*\/checkout\/order-pay\/\S+/)[0];
     await page.goto(retryUrl.replace(/&amp;/g, '&'));
-    await page.locator('#payment_method_wpr_test_failing').check();
+    await page.locator('#payment_method_payretry_test_failing').check();
     await page.locator('form button[type="submit"], button[type="submit"]').first().click();
     // block themes print notices outside .woocommerce-NoticeGroup — assert the text
     await expect(page.getByText('declined by the test gateway')).toBeVisible({ timeout: 30_000 });
@@ -163,12 +163,12 @@ test.describe('purchase & recovery scenarios', () => {
     // 3. Still failed, coupon intact, and no fourth reminder is ever sent.
     const after = JSON.parse(wp([
       'eval',
-      `$o = wc_get_order(${orderId}); wpr_tick();`
-      + ` $log = array_filter(get_option('wpr_mail_log', []), fn($m) => str_starts_with($m['subject'], 'Order #' . ${orderId} . ':'));`
-      + ` echo json_encode(['status' => $o->get_status(), 'stage' => $o->get_meta('_wpr_stage'), 'mails' => count($log), 'coupon' => wc_get_coupon_id_by_code('RECOVER-${orderId}')]);`,
+      `$o = wc_get_order(${orderId}); payretry_tick();`
+      + ` $log = array_filter(get_option('payretry_mail_log', []), fn($m) => str_starts_with($m['subject'], 'Order #' . ${orderId} . ':'));`
+      + ` echo json_encode(['status' => $o->get_status(), 'stage' => $o->get_meta('_payretry_stage'), 'mails' => count($log), 'coupon' => wc_get_coupon_id_by_code('RECOVER-${orderId}')]);`,
     ]).trim());
     expect(after.status).toBe('failed');
-    expect(Number(after.stage)).toBe(0), 'a declined retry restarts the reminder cycle (fresh _wpr_start)';
+    expect(Number(after.stage)).toBe(0), 'a declined retry restarts the reminder cycle (fresh _payretry_start)';
     expect(Number(after.mails)).toBe(before, 'no extra reminder right after a declined retry');
     expect(Number(after.coupon)).toBeGreaterThan(0);
   });

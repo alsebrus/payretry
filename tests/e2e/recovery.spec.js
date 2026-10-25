@@ -40,7 +40,7 @@ test.describe('payment recovery end-to-end', () => {
     await page.locator('#billing_postcode').fill('90210');
     await page.locator('#billing_phone').fill('5551234567');
     await page.locator('#billing_email').fill('e2e@example.com');
-    await page.locator('#payment_method_wpr_test_failing').check();
+    await page.locator('#payment_method_payretry_test_failing').check();
     await page.locator('#place_order').click();
 
     // 2. Checkout stays on the page with a payment error notice.
@@ -50,7 +50,7 @@ test.describe('payment recovery end-to-end', () => {
     const orderJson = wp([
       'eval',
       `$o = wc_get_orders(['status' => 'failed', 'billing_email' => 'e2e@example.com', 'limit' => 1])[0] ?? null;`
-      + ` echo $o ? json_encode(['id' => $o->get_id(), 'start' => $o->get_meta('_wpr_start'), 'stage' => $o->get_meta('_wpr_stage')]) : 'none';`,
+      + ` echo $o ? json_encode(['id' => $o->get_id(), 'start' => $o->get_meta('_payretry_start'), 'stage' => $o->get_meta('_payretry_stage')]) : 'none';`,
     ]).trim();
     const order = JSON.parse(orderJson);
     expect(order.id).toBeTruthy();
@@ -58,12 +58,12 @@ test.describe('payment recovery end-to-end', () => {
     expect(Number(order.stage)).toBe(0);
 
     // 4. Fast-forward 8 days and run the daily cron handler three times.
-    wp(['eval', `$o = wc_get_order(${order.id}); $o->update_meta_data('_wpr_start', time() - 8 * DAY_IN_SECONDS); $o->update_meta_data('_wpr_stage', 0); $o->save(); wpr_tick(); wpr_tick(); wpr_tick();`]);
+    wp(['eval', `$o = wc_get_order(${order.id}); $o->update_meta_data('_payretry_start', time() - 8 * DAY_IN_SECONDS); $o->update_meta_data('_payretry_stage', 0); $o->save(); payretry_tick(); payretry_tick(); payretry_tick();`]);
 
     // 5. Three reminder mails, escalating subject, coupon in the retry link.
     const mailsJson = wp([
       'eval',
-      `$log = array_values(array_filter(get_option('wpr_mail_log', []), fn($m) => $m['to'] === 'e2e@example.com')); echo json_encode($log);`,
+      `$log = array_values(array_filter(get_option('payretry_mail_log', []), fn($m) => $m['to'] === 'e2e@example.com')); echo json_encode($log);`,
     ]).trim();
     const mails = JSON.parse(mailsJson);
     expect(mails).toHaveLength(3);
@@ -86,10 +86,10 @@ test.describe('payment recovery end-to-end', () => {
     expect(coupon.limit).toBe(1); // single-use: bound to this order only
 
     // 7. A fourth tick stays silent.
-    wp(['eval', 'wpr_tick();']);
+    wp(['eval', 'payretry_tick();']);
     const afterJson = wp([
       'eval',
-      `$log = array_values(array_filter(get_option('wpr_mail_log', []), fn($m) => $m['to'] === 'e2e@example.com')); echo count($log);`,
+      `$log = array_values(array_filter(get_option('payretry_mail_log', []), fn($m) => $m['to'] === 'e2e@example.com')); echo count($log);`,
     ]).trim();
     expect(Number(afterJson)).toBe(3);
   });

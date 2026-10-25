@@ -20,13 +20,13 @@ function wpEval(code) {
 
   // the exact link from the last email
   const mail = JSON.parse(wpEval(
-    `$log = array_filter(get_option('wpr_mail_log', []), fn($m) => str_contains($m['subject'], 'Order #196'));`
+    `$log = array_filter(get_option('payretry_mail_log', []), fn($m) => str_contains($m['subject'], 'Order #196'));`
     + `$log = array_values($log); echo json_encode($log[count($log) - 1]);`
   ).trim());
   report.email_link = mail.body.match(/https?:\/\/\S+/)[0].replace(/&amp;/g, '&');
 
   // this time the gateway approves (the customer's card works on retry)
-  wpEval("update_option('wpr_test_gate_mode', 'success');");
+  wpEval("update_option('payretry_test_gate_mode', 'success');");
 
   const browser = await chromium.launch({ executablePath: exe });
   const page = await browser.newPage();
@@ -48,7 +48,7 @@ function wpEval(code) {
   report.total_before_pay = (await page.locator('table.woocommerce-table--order-details, table').first().innerText())
     .replace(/\s+/g, ' ').match(/Total:.{0,40}/)?.[0] ?? null;
 
-  await page.locator('#payment_method_wpr_test_failing').check();
+  await page.locator('#payment_method_payretry_test_failing').check();
   await page.locator('form button[type="submit"], button[type="submit"]').first().click();
   report.thankyou_page = await page.locator('.woocommerce-order-received, .woocommerce-thankyou-order-received').first()
     .waitFor({ timeout: 30000 }).then(() => true).catch(() => false);
@@ -59,14 +59,14 @@ function wpEval(code) {
   report.final = JSON.parse(wpEval(
     `$o = wc_get_order(196); $coupons = [];`
     + ` foreach ($o->get_items('coupon') as $i) { $coupons[] = $i->get_code(); }`
-    + ` echo json_encode(['status' => $o->get_status(), 'total' => $o->get_total(), 'coupons' => $coupons, 'stage' => $o->get_meta('_wpr_stage')]);`
+    + ` echo json_encode(['status' => $o->get_status(), 'total' => $o->get_total(), 'coupons' => $coupons, 'stage' => $o->get_meta('_payretry_stage')]);`
   ).trim());
   report.recovery_report = JSON.parse(wpEval(
-    `$s = wprp_summary(30); echo json_encode(['recovered' => $s['recovered'], 'revenue' => $s['revenue'], 'rate' => $s['rate']]);`
+    `$s = payretry_pro_summary(30); echo json_encode(['recovered' => $s['recovered'], 'revenue' => $s['revenue'], 'rate' => $s['rate']]);`
   ).trim());
 
   // deterministic state for whatever comes next
-  wpEval("update_option('wpr_test_gate_mode', 'fail');");
+  wpEval("update_option('payretry_test_gate_mode', 'fail');");
 
   console.log(JSON.stringify(report, null, 2));
 })().catch(async (e) => {

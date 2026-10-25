@@ -20,7 +20,7 @@ const exe = [process.env.CHROME_PATH, '/home/kiber/.nix-profile/bin/google-chrom
   await page.locator('#user_pass').fill('password');
   await page.locator('#wp-submit').click();
   await page.waitForURL(/wp-admin/);
-  await page.goto(`${BASE}/wp-admin/admin.php?page=wpr`);
+  await page.goto(`${BASE}/wp-admin/admin.php?page=payretry`);
   await page.waitForSelector('form');
   const upsell = page.locator('a:has-text("PayRetry Pro")').first();
   report.upsell_link_visible = await upsell.isVisible().catch(() => false);

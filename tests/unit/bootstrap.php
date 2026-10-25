@@ -1,5 +1,5 @@
 <?php
-// Minimal WP/WC stand-ins so the plugin file can be loaded and wpr_tick driven
+// Minimal WP/WC stand-ins so the plugin file can be loaded and payretry_tick driven
 // without a WordPress installation. Unconditional functions are hoisted at
 // compile time, so the plugin below can call them even though they are
 // declared further down — but the $GLOBALS it writes to must exist first.
@@ -7,21 +7,19 @@
 define('ABSPATH', __DIR__);
 define('DAY_IN_SECONDS', 86400);
 define('HOUR_IN_SECONDS', 3600);
-// Skip the real Freemius SDK boot: it needs a full WordPress, we have stubs.
-define('WPR_NO_FREEMIUS', true);
 
-$GLOBALS['wpr_registered_actions'] = [];
-$GLOBALS['wpr_mails'] = [];
-$GLOBALS['wpr_fake_orders'] = [];
-$GLOBALS['wpr_coupons'] = [];
+$GLOBALS['payretry_registered_actions'] = [];
+$GLOBALS['payretry_mails'] = [];
+$GLOBALS['payretry_fake_orders'] = [];
+$GLOBALS['payretry_coupons'] = [];
 
 require_once dirname(__DIR__, 2) . '/payretry.php';
 require_once dirname(__DIR__, 2) . '/pro/payretry-pro/payretry-pro.php';
 
-$GLOBALS['wpr_test_options'] = [];
+$GLOBALS['payretry_test_options'] = [];
 function get_option($k, $d = false)
 {
-    return $GLOBALS['wpr_test_options'][$k] ?? $d;
+    return $GLOBALS['payretry_test_options'][$k] ?? $d;
 }
 function wp_parse_args($args, $defaults)
 {
@@ -67,7 +65,7 @@ function submit_button()
 
 function add_action($hook, $cb)
 {
-    $GLOBALS['wpr_registered_actions'][] = $hook;
+    $GLOBALS['payretry_registered_actions'][] = $hook;
 }
 function register_uninstall_hook($file, $cb)
 {
@@ -78,12 +76,12 @@ function wp_next_scheduled($hook)
 }
 function wp_schedule_event($ts, $recurrence, $hook)
 {
-    $GLOBALS['wpr_scheduled'] = [$ts, $recurrence, $hook];
+    $GLOBALS['payretry_scheduled'] = [$ts, $recurrence, $hook];
 }
 
 function wp_mail($to, $subject, $body)
 {
-    $GLOBALS['wpr_mails'][] = compact('to', 'subject', 'body');
+    $GLOBALS['payretry_mails'][] = compact('to', 'subject', 'body');
     return true;
 }
 
@@ -94,12 +92,12 @@ function add_query_arg($key, $value, $url)
 
 function wc_get_orders($args)
 {
-    return $GLOBALS['wpr_fake_orders'];
+    return $GLOBALS['payretry_fake_orders'];
 }
 
 function wc_get_coupon_id_by_code($code)
 {
-    return $GLOBALS['wpr_coupons'][$code]['id'] ?? 0;
+    return $GLOBALS['payretry_coupons'][$code]['id'] ?? 0;
 }
 
 class WC_Coupon
@@ -126,8 +124,8 @@ class WC_Coupon
     }
     public function save()
     {
-        $GLOBALS['wpr_coupons'][$this->code] = [
-            'id' => $GLOBALS['wpr_coupons'][$this->code]['id'] ?? count($GLOBALS['wpr_coupons']) + 1,
+        $GLOBALS['payretry_coupons'][$this->code] = [
+            'id' => $GLOBALS['payretry_coupons'][$this->code]['id'] ?? count($GLOBALS['payretry_coupons']) + 1,
             'type' => $this->type,
             'amount' => $this->amount,
             'usage_limit' => $this->usage_limit,

@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: WPR Test Gateway
+ * Plugin Name: PayRetry Test Gateway
  * Description: Test-only mu-plugin: a payment gateway that always declines, so tests can produce a real failed order.
  */
 
@@ -10,11 +10,11 @@ add_action('plugins_loaded', function () {
         return;
     }
 
-    class WPR_Test_Failing_Gateway extends WC_Payment_Gateway
+    class Payretry_Test_Failing_Gateway extends WC_Payment_Gateway
     {
         public function __construct()
         {
-            $this->id = 'wpr_test_failing';
+            $this->id = 'payretry_test_failing';
             $this->method_title = 'Test Failing Card';
             $this->method_description = 'Always declines. For automated tests only.';
             $this->description = 'Always declines. For automated tests only.';
@@ -25,7 +25,7 @@ add_action('plugins_loaded', function () {
         public function process_payment($order_id)
         {
             $order = wc_get_order($order_id);
-            if (get_option('wpr_test_gate_mode', 'fail') === 'success') {
+            if (get_option('payretry_test_gate_mode', 'fail') === 'success') {
                 $order->payment_complete('TEST-APPROVED-' . $order_id);
                 return ['result' => 'success', 'redirect' => $order->get_checkout_order_received_url()];
             }
@@ -41,7 +41,7 @@ add_action('plugins_loaded', function () {
     }
 
     add_filter('woocommerce_payment_gateways', function ($gateways) {
-        $gateways[] = WPR_Test_Failing_Gateway::class;
+        $gateways[] = Payretry_Test_Failing_Gateway::class;
         return $gateways;
     });
 }, 20);

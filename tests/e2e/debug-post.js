@@ -29,7 +29,7 @@ const exe = [process.env.CHROME_PATH, '/home/kiber/.nix-profile/bin/google-chrom
     console.log('NO FORM. body head:', (await p.locator('body').innerText()).replace(/\s+/g, ' ').slice(0, 400));
     throw e;
   }
-  await p.locator('#payment_method_wpr_test_failing').check();
+  await p.locator('#payment_method_payretry_test_failing').check();
   // log non-secret form field NAMES and payment selection
   const fields = await p.$$eval('#order_review input', (els) => els.map((e) => ({ name: e.name, type: e.type, checked: e.checked })).filter((x) => x.name && x.type !== 'hidden').concat(
     [...document.querySelectorAll('#order_review input[type=hidden]')].map((e) => ({ name: e.name, type: 'hidden', value: e.value ? '<set>' : '<empty>' }))

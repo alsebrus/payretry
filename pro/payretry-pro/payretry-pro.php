@@ -34,7 +34,7 @@ if (!isset($pp_fs) && file_exists(dirname(__FILE__) . '/vendor/freemius/start.ph
         'has_paid_plans'    => true,
         'is_org_compliant'  => true,
         'menu'              => array(
-            'slug'     => 'wpr-pro',
+            'slug'     => 'payretry-pro',
             'account'  => false,
             'network'  => false,
             'priority' => 57,
@@ -45,7 +45,7 @@ if (!isset($pp_fs) && file_exists(dirname(__FILE__) . '/vendor/freemius/start.ph
 /**
  * Pure analysis: classify orders into reminder/recovery metrics.
  *
- * The anchor is _wpr_start, written by `woocommerce_payment_failed` the moment
+ * The anchor is _payretry_start, written by `woocommerce_payment_failed` the moment
  * a payment is declined. An order paid on the first try never gets it, so a
  * recovered order is simply "was failed, is paid now" — no coupon required
  * (retry can happen from the first reminder, which carries no discount).
@@ -54,12 +54,12 @@ if (!isset($pp_fs) && file_exists(dirname(__FILE__) . '/vendor/freemius/start.ph
  * @param array $paid   paid orders of the period.
  * @return array{failed:int, recovered:int, still_unpaid:int, revenue:float, rate:float}
  */
-function wprp_collect(array $orders, array $paid): array
+function payretry_pro_collect(array $orders, array $paid): array
 {
     $failed_count = 0;
     $still_unpaid = 0;
     foreach ($orders as $order) {
-        if ((int) $order->get_meta('_wpr_start') > 0) {
+        if ((int) $order->get_meta('_payretry_start') > 0) {
             $failed_count++;
             if ('failed' === $order->get_status()) {
                 $still_unpaid++;
@@ -69,7 +69,7 @@ function wprp_collect(array $orders, array $paid): array
     $recovered = 0;
     $revenue = 0.0;
     foreach ($paid as $order) {
-        if ((int) $order->get_meta('_wpr_start') > 0) {
+        if ((int) $order->get_meta('_payretry_start') > 0) {
             $recovered++;
             $revenue += (float) $order->get_total();
         }
@@ -83,39 +83,39 @@ function wprp_collect(array $orders, array $paid): array
     ];
 }
 
-function wprp_summary(int $days): array
+function payretry_pro_summary(int $days): array
 {
     $since = time() - $days * DAY_IN_SECONDS;
-    return wprp_collect(
+    return payretry_pro_collect(
         wc_get_orders(['date_created' => '>' . $since, 'limit' => -1]),
         wc_get_orders(['status' => ['processing', 'completed'], 'date_created' => '>' . $since, 'limit' => -1])
     );
 }
 
-function wprp_recent_recovered(int $days, int $limit = 10): array
+function payretry_pro_recent_recovered(int $days, int $limit = 10): array
 {
     $since = time() - $days * DAY_IN_SECONDS;
     $out = [];
     foreach (wc_get_orders(['status' => ['processing', 'completed'], 'date_created' => '>' . $since, 'limit' => $limit, 'orderby' => 'date', 'order' => 'DESC']) as $order) {
-        if ((int) $order->get_meta('_wpr_start') > 0) {
+        if ((int) $order->get_meta('_payretry_start') > 0) {
             $out[] = $order;
         }
     }
     return $out;
 }
 
-function wprp_render_report_page(): void
+function payretry_pro_render_report_page(): void
 {
     $days  = max(1, min(365, (int) ($_GET['days'] ?? 30)));
-    $s     = wprp_summary($days);
-    $recent = wprp_recent_recovered($days);
+    $s     = payretry_pro_summary($days);
+    $recent = payretry_pro_recent_recovered($days);
     ?>
     <div class="wrap">
         <h1><?php esc_html_e('PayRetry Pro — Recovery Report', 'payretry-pro'); ?></h1>
         <p>
             <?php foreach ([7 => '7 days', 30 => '30 days', 90 => '90 days', 365 => '1 year'] as $d => $label) : ?>
                 <a class="button <?php echo $d === $days ? 'button-primary' : ''; ?>"
-                   href="<?php echo esc_url(add_query_arg('days', $d, admin_url('admin.php?page=wpr-pro'))); ?>"><?php echo esc_html($label); ?></a>
+                   href="<?php echo esc_url(add_query_arg('days', $d, admin_url('admin.php?page=payretry-pro'))); ?>"><?php echo esc_html($label); ?></a>
             <?php endforeach; ?>
         </p>
         <table class="widefat striped" style="max-width:720px">
@@ -152,7 +152,7 @@ add_action('admin_menu', function () {
         __('PayRetry Pro', 'payretry-pro'),
         __('PayRetry Pro', 'payretry-pro'),
         'manage_woocommerce',
-        'wpr-pro',
-        'wprp_render_report_page'
+        'payretry-pro',
+        'payretry_pro_render_report_page'
     );
 });

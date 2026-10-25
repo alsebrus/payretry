@@ -39,6 +39,7 @@ through wp_mail.
 == Changelog ==
 
 = 0.4.1 =
+* Renamed all functions, hooks, options and meta keys to the payretry_ prefix (plugin review: the previous wpr prefix was too short).
 * The recovery coupon is now single-use (one redemption, bound to its order).
 * Apply the recovery coupon on the order-pay page itself: WooCommerce ignores ?coupon= there, so the discount promised in the reminder email now really lands.
 * The Pro upsell link points at https://payretry-woo.oreviq.com/ and hides itself while the Pro add-on is active.

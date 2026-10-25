@@ -26,9 +26,9 @@ const executablePath = [process.env.CHROME_PATH, '/home/kiber/.nix-profile/bin/g
 
   await page.goto(url);
   await page.waitForSelector('#order_review');
-  const radio = await page.locator('#payment_method_wpr_test_failing').count();
+  const radio = await page.locator('#payment_method_payretry_test_failing').count();
   console.log('gateway radio present:', radio);
-  await page.locator('#payment_method_wpr_test_failing').check();
+  await page.locator('#payment_method_payretry_test_failing').check();
   const submit = page.locator('form button[type="submit"], button[type="submit"]').first();
   console.log('submit text:', await submit.innerText());
   await submit.click();
