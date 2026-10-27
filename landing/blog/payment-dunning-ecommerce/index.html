@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="google-site-verification" content="TKRNt-_2ach5H1BSqPbrMW7CVEoeLXwgwFW8LylomFQ" />
+<title>Payment Dunning for E-commerce: What It Is and How to Set It Up (2026) — PayRetry</title>
+<meta name="description" content="Payment dunning explained for online stores: what it is, why it matters for failed card payments, the day 1/3/7 dunning sequence, metrics to track, and how to set it up in WooCommerce.">
+<link rel="canonical" href="https://payretry-woo.oreviq.com/blog/payment-dunning-ecommerce/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Payment Dunning for E-commerce: What It Is and How to Set It Up">
+<meta property="og:description" content="What payment dunning is, the day 1/3/7 sequence with template, metrics, and a WooCommerce setup walkthrough.">
+<meta property="og:url" content="https://payretry-woo.oreviq.com/blog/payment-dunning-ecommerce/">
+<meta property="article:published_time" content="2026-10-29T10:00:00+03:00">
+<meta property="article:author" content="Alexey Babkin">
+<meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Payment Dunning for E-commerce: What It Is and How to Set It Up",
+  "description": "Payment dunning explained: definition, the recovery email sequence, metrics, and WooCommerce setup.",
+  "author": { "@type": "Person", "name": "Alexey Babkin", "url": "https://wordpress.org/plugins/payretry/" },
+  "publisher": { "@type": "Organization", "name": "PayRetry" },
+  "datePublished": "2026-10-29",
+  "mainEntityOfPage": "https://payretry-woo.oreviq.com/blog/payment-dunning-ecommerce/"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    { "@type": "Question", "name": "What is payment dunning?", "acceptedAnswer": { "@type": "Answer", "text": "Payment dunning is the automated process of retrying and following up on failed payments: the system detects a decline, retries it, and emails the customer a link to complete payment over a set schedule until the invoice is paid or written off." } },
+    { "@type": "Question", "name": "What is a good dunning success rate?", "acceptedAnswer": { "@type": "Answer", "text": "For e-commerce failed payments (not subscriptions), recovering 15–30% of declined revenue with a three-touch sequence over seven days is a normal, healthy range." } },
+    { "@type": "Question", "name": "How many dunning emails should I send?", "acceptedAnswer": { "@type": "Answer", "text": "Three over seven days is the practical standard: day 1 reminder, day 3 follow-up with a small discount, day 7 last call with an expiring offer. More than three touches trains customers to ignore you." } },
+    { "@type": "Question", "name": "Dunning vs retry: what is the difference?", "acceptedAnswer": { "@type": "Answer", "text": "A retry re-attempts the charge automatically (works for temporary soft declines). Dunning is the whole recovery process — retries plus customer emails — which also covers cases only the customer can fix, like an expired card." } }
+  ]
+}
+</script>
+<style>
+  :root {
+    --bg: #fff; --fg: #1a1a2e; --muted: #555; --card: #f7f7fa;
+    --accent: #7c3aed; --accent-fg: #fff; --border: #e4e4ec; --ok: #0a7a3d;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #12121a; --fg: #eaeaf2; --muted: #9a9ab0; --card: #1c1c28;
+            --accent: #a78bfa; --accent-fg: #12121a; --border: #2c2c3c; --ok: #34d399; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 18px/1.65 system-ui, sans-serif; background: var(--bg); color: var(--fg); }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 48px 20px; }
+  h1 { font-size: 2em; line-height: 1.2; margin: 0 0 12px; }
+  h2 { font-size: 1.35em; margin: 44px 0 12px; }
+  h3 { font-size: 1.1em; margin: 28px 0 8px; }
+  .lead { font-size: 1.12em; color: var(--muted); }
+  .meta { color: var(--muted); font-size: .85em; margin-bottom: 28px; }
+  .meta a { color: var(--accent); text-decoration: none; }
+  .crumbs { font-size: .85em; color: var(--muted); margin-bottom: 20px; }
+  .crumbs a { color: var(--accent); text-decoration: none; }
+  .cta { display: inline-block; background: var(--accent); color: var(--accent-fg);
+         padding: 14px 28px; border-radius: 10px; text-decoration: none;
+         font-weight: 700; margin: 8px 8px 8px 0; }
+  .alt { color: var(--muted); text-decoration: none; border-bottom: 1px dotted var(--muted); }
+  .note { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent);
+          border-radius: 10px; padding: 16px 20px; margin: 24px 0; }
+  table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  td:last-child, th:last-child { text-align: right; }
+  .ok::before { content: "✓ "; color: var(--ok); font-weight: 700; }
+  code, pre { font-family: ui-monospace, monospace; font-size: .9em; }
+  pre { background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+        padding: 16px; overflow-x: auto; white-space: pre-wrap; }
+  td a, li a { color: var(--accent); font-weight: 700; text-decoration: none; }
+  footer { color: var(--muted); font-size: .8em; margin-top: 48px; border-top: 1px solid var(--border); padding-top: 20px; }
+  footer a { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<nav class="crumbs"><a href="/">PayRetry</a> &rsaquo; <a href="/blog/how-to-recover-failed-payments-woocommerce/">Blog</a> &rsaquo; Dunning</nav>
+
+<h1>Payment Dunning for E-commerce: What It Is and How to Set It Up</h1>
+<p class="meta">Published October 29, 2026 by <a href="https://wordpress.org/plugins/payretry/">Alexey Babkin</a> · 7 min read</p>
+
+<p class="lead">"Dunning" sounds like accounting jargon from the19th century — and it kind of is —
+but in 2026 it is simply the name for <strong>the automated follow-up that gets declined payments
+paid</strong>. Here is what it is, what a good dunning sequence looks like, and how to switch it on
+in a WooCommerce store in ten minutes.</p>
+
+<h2>What payment dunning is</h2>
+<p><strong>Payment dunning</strong> is the structured process of recovering unpaid invoices: detect
+the failed payment, retry it if the failure was temporary, and contact the customer on a schedule
+until the money arrives or the order is written off. For subscriptions it means chasing expired
+cards; for a store it means chasing <strong>declined checkout payments</strong> — orders already
+paid-for in intent, failed in execution.</p>
+
+<div class="note"><strong>Origin of the word:</strong> "dunner" was a clerk who dunned — pressed
+debtors for payment. The clerk is now software, and the schedule is the only thing you have to
+configure.</div>
+
+<h2>Dunning vs retry vs abandoned-cart emails</h2>
+<table>
+  <tr><th>Mechanism</th><th>What it does</th><th>Catches</th></tr>
+  <tr><td><strong>Auto-retry</strong></td><td>Re-attempts the charge silently</td><td>Temporary soft declines</td></tr>
+  <tr><td><strong>Dunning</strong></td><td>Retries + scheduled customer emails</td><td>Soft declines + expired/wrong cards</td></tr>
+  <tr><td><strong>Abandoned-cart emails</strong></td><td>Remind shoppers who never checked out</td><td>People who left before paying</td></tr>
+</table>
+<p>Dunning covers a different funnel step than cart recovery: the customer already finished
+checkout — the bank said no. The mechanics differ (retry links vs cart links), so cart tools don't
+substitute for dunning. Details in
+<a href="/blog/how-to-recover-failed-payments-woocommerce/">the recovery guide</a>.</p>
+
+<h2>The standard dunning sequence: day 1, 3, 7</h2>
+<table>
+  <tr><th>Touch</th><th>Content</th></tr>
+  <tr><td class="ok">Day 1</td><td class="ok">"Payment didn't go through" + one-click retry link</td></tr>
+  <tr><td class="ok">Day 3</td><td class="ok">Follow-up + single-use 5% coupon</td></tr>
+  <tr><td class="ok">Day 7</td><td class="ok">Last call + single-use 10% coupon with expiry</td></tr>
+</table>
+<p>Core email — short, one link, zero blame:</p>
+<pre>Subject: Your payment didn't go through — order #1234
+
+Hi {{customer.first_name}},
+
+We tried to process your payment for order #1234, but the bank
+declined it. Nothing is lost — you can complete the order in one click:
+
+  [Complete my payment]
+
+— {{shop.name}}</pre>
+<p>Three touches over a week is the practical ceiling for one-off purchases; subscription dunning
+often runs longer (card updater + retries for30–60 days) because the relationship continues.</p>
+
+<h2>Metrics that tell you dunning works</h2>
+<table>
+  <tr><td>Failed payments</td><td>Per period</td></tr>
+  <tr><td>Recovery rate</td><td>Recovered ÷ failed — target 15–30%</td></tr>
+  <tr><td>Recovered revenue</td><td>Sum of recovered order totals</td></tr>
+  <tr><td>Time to recovery</td><td>Hours from failure to payment — the faster, the better</td></tr>
+</table>
+
+<h2>How to set up dunning in WooCommerce (10 minutes)</h2>
+<p>WooCommerce has no built-in dunning — a failed order just sits as <strong>Failed</strong>.
+Setup with the free <strong>PayRetry</strong> plugin:</p>
+<ul>
+  <li class="ok">Install from WordPress.org, activate — detection of failed payments starts immediately</li>
+  <li class="ok">The day 1/3/7 schedule and email template are preconfigured (editable)</li>
+  <li class="ok">Escalating single-use coupons (5% → 10%) are created and scoped automatically</li>
+  <li class="ok">Works with every gateway that marks orders Failed: Stripe, PayPal, WooPayments…</li>
+</ul>
+<p>No cron to configure, no code — it runs on WP-Cron. Paid tiers are not required for the
+sequence itself.</p>
+<p>
+  <a class="cta" href="https://wordpress.org/plugins/payretry/">Install PayRetry — free</a>
+  <a class="alt" href="/blog/card-declined-at-checkout-recovery/">Declined-card playbook</a>
+</p>
+
+<h2>FAQ</h2>
+<h3>What is payment dunning?</h3>
+<p>Automated recovery of failed payments: detect the decline, retry it, and email the customer on
+a schedule until the order is paid or written off.</p>
+
+<h3>What is a good dunning success rate?</h3>
+<p>For e-commerce failed payments, recovering <strong>15–30%</strong> of declined revenue with a
+three-touch sequence over seven days is a normal, healthy range.</p>
+
+<h3>How many dunning emails should I send?</h3>
+<p>Three over seven days (see the sequence above). More touches train customers to ignore you;
+fewer leave money on the table.</p>
+
+<h3>Dunning vs retry — what's the difference?</h3>
+<p>A retry re-attempts the charge (covers temporary soft declines). Dunning is the whole process
+— retries <em>plus</em> customer emails — so it also covers expired cards and 3DS timeouts that
+only the customer can fix. More on decline types in
+<a href="/blog/card-declined-at-checkout-recovery/">the declined-card playbook</a>.</p>
+
+<h3>Is dunning the same as collections?</h3>
+<p>No — collections chase money already owed after delivery; dunning chases payments that failed
+at the moment of purchase, before the order ships.</p>
+
+<p>
+  <a class="cta" href="https://wordpress.org/plugins/payretry/">Install PayRetry — free</a>
+</p>
+
+<footer>
+  <a href="/">PayRetry home</a> · <a href="/blog/woocommerce-payment-failed-recover-order/">Failed order guide</a> ·
+  <a href="/blog/card-declined-at-checkout-recovery/">Declined card playbook</a> ·
+  Plugin on <a href="https://wordpress.org/plugins/payretry/">WordPress.org</a>
+</footer>
+
+</div>
+
+<!-- Cloudflare Web Analytics -->
+<script type='module' src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "994747501d16478c90b9f2c7ee88ca79"}'></script>
+<!-- End Cloudflare Web Analytics -->
+</body>
+</html>
