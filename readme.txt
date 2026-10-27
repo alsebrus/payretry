@@ -4,7 +4,7 @@ Tags: woocommerce, payment recovery, dunning, failed payments, checkout
 Requires at least: 6.0
 Tested up to: 7.1
 Requires PHP: 8.0
-Stable tag: 0.4.1
+Stable tag: 0.4.2
 License: GPLv2 or later
 
 Automatic payment-failed reminder emails with a retry link and escalating discount.
@@ -36,7 +36,15 @@ through wp_mail.
 2. Activate the plugin through the 'Plugins' menu.
 3. Go to WooCommerce → Payment Recovery to configure the reminder schedule.
 
+== Screenshots ==
+
+1. Recovery report: failed payments, recovered orders, recovered revenue and recovery rate for any period.
+2. Reminder schedule: days after the failed payment, the discount for each reminder, and the editable email template.
+
 == Changelog ==
+
+= 0.4.2 =
+* Added screenshots and refreshed assets on the plugin page.
 
 = 0.4.1 =
 * Renamed all functions, hooks, options and meta keys to the payretry_ prefix (plugin review: the previous wpr prefix was too short).
