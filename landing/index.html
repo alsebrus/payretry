@@ -21,10 +21,17 @@
   "description": "Automatically recovers failed WooCommerce payments with retry links and escalating discount coupons.",
   "image": "https://ps.w.org/payretry/assets/icon-256x256.png",
   "brand": { "@type": "Brand", "name": "PayRetry" },
+  "hasMerchantReturnPolicy": {
+    "@type": "MerchantReturnPolicy",
+    "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+    "merchantReturnDays": 14,
+    "returnMethod": "https://schema.org/ReturnByMail",
+    "returnFees": "https://schema.org/FreeReturn"
+  },
   "offers": [
-    { "@type": "Offer", "name": "Annual", "price": "79.00", "priceCurrency": "USD", "url": "https://checkout.freemius.com/?plugin_id=42120&plan_id=73262&billing_cycle=annual" },
-    { "@type": "Offer", "name": "Monthly", "price": "9.00", "priceCurrency": "USD", "url": "https://checkout.freemius.com/?plugin_id=42120&plan_id=73262&billing_cycle=monthly" },
-    { "@type": "Offer", "name": "Lifetime", "price": "199.00", "priceCurrency": "USD", "url": "https://checkout.freemius.com/?plugin_id=42120&plan_id=73262&billing_cycle=lifetime" }
+    { "@type": "Offer", "name": "Annual", "price": "79.00", "priceCurrency": "USD", "availability": "https://schema.org/InStock", "url": "https://checkout.freemius.com/?plugin_id=42120&plan_id=73262&billing_cycle=annual" },
+    { "@type": "Offer", "name": "Monthly", "price": "9.00", "priceCurrency": "USD", "availability": "https://schema.org/InStock", "url": "https://checkout.freemius.com/?plugin_id=42120&plan_id=73262&billing_cycle=monthly" },
+    { "@type": "Offer", "name": "Lifetime", "price": "199.00", "priceCurrency": "USD", "availability": "https://schema.org/InStock", "url": "https://checkout.freemius.com/?plugin_id=42120&plan_id=73262&billing_cycle=lifetime" }
   ]
 }
 </script>
